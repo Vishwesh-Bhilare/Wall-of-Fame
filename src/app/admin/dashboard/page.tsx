@@ -38,7 +38,7 @@ export default function AdminDashboard() {
 
     const { data: detailedData, error: detailedError } = await supabase
       .from("achievements")
-      .select("id,title,type,status,description,rank,submitted_at,academic_year,accomplishment_date,submitter_email,certificate,verified_by,profiles(name,email),verifier_profile:profiles!achievements_verified_by_fkey(name,email)")
+      .select("id,title,type,status,description,rank,submitted_at,academic_year,accomplishment_date,submitter_email,certificate,verified_by,profiles:profiles!achievements_user_id_fkey(name,email),verifier_profile:profiles!achievements_verified_by_fkey(name,email)")
       .order("created_at", { ascending: false })
       .order("id", { ascending: false });
 
@@ -50,7 +50,7 @@ export default function AdminDashboard() {
 
     const { data, error } = await supabase
       .from("achievements")
-      .select("id,title,type,status,description,rank,submitted_at,certificate,profiles(name,email)")
+      .select("id,title,type,status,description,rank,submitted_at,certificate,profiles:profiles!achievements_user_id_fkey(name,email)")
       .order("created_at", { ascending: false })
       .order("id", { ascending: false });
 

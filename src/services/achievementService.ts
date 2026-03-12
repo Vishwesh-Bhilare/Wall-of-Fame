@@ -31,7 +31,7 @@ export async function createAchievement(payload: CreateAchievementInput) {
 export async function getAchievementById(id: string) {
   const detailedQuery = supabase
     .from("achievements")
-    .select("*,profiles(name,department,year,email),verifier_profile:profiles!achievements_verified_by_fkey(name,email)")
+    .select("*,profiles:profiles!achievements_user_id_fkey(name,department,year,email),verifier_profile:profiles!achievements_verified_by_fkey(name,email)")
     .eq("id", id);
 
   const { data: detailedData, error: detailedError } = await detailedQuery.single();

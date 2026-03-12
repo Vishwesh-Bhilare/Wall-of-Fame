@@ -4,7 +4,7 @@ import type { Achievement } from "../types/achievement";
 export async function getPendingAchievements() {
   const { data, error } = await supabase
     .from("achievements")
-    .select("id,title,type,status,description,rank,certificate,submitted_at,profiles(name)")
+    .select("id,title,type,status,description,rank,certificate,submitted_at,profiles:profiles!achievements_user_id_fkey(name)")
     .eq("status", "pending")
     .order("created_at", { ascending: false });
 
