@@ -32,31 +32,9 @@ export default function Button({
       type={type}
       onClick={onClick}
       disabled={disabled}
-      className={`inline-flex items-center justify-center rounded-xl px-4 py-2.5 text-sm font-semibold transition-all duration-200 ${variantStyles[variant]} ${disabled ? "cursor-not-allowed opacity-60" : ""} ${className}`}
-    >
-      {children}
-    </button>
-  );
-}import React from "react";
-
-type ButtonProps = {
-  children: React.ReactNode;
-  onClick?: () => void;
-  type?: "button" | "submit";
-  className?: string;
-};
-
-export default function Button({
-  children,
-  onClick,
-  type = "button",
-  className = "",
-}: ButtonProps) {
-  return (
-    <button
-      type={type}
-      onClick={onClick}
-      className={`px-4 py-2 rounded bg-blue-600 text-white hover:bg-blue-700 ${className}`}
+      className={`inline-flex items-center justify-center rounded-xl px-4 py-2.5 text-sm font-semibold transition-all duration-200 ${variantStyles[variant]} ${
+        disabled ? "cursor-not-allowed opacity-60" : ""
+      } ${className}`}
     >
       {children}
     </button>

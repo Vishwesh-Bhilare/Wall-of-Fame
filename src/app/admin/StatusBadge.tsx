@@ -10,27 +10,16 @@ const statusStyleMap: Record<string, string> = {
 
 export default function StatusBadge({ status }: Props) {
   const normalizedStatus = status?.toLowerCase() || "pending";
-  const style = statusStyleMap[normalizedStatus] || "bg-gray-100 text-gray-700 border border-gray-200";
+
+  const style =
+    statusStyleMap[normalizedStatus] ||
+    "bg-gray-100 text-gray-700 border border-gray-200";
 
   return (
-    <span className={`inline-flex rounded-full px-3 py-1 text-xs font-semibold capitalize ${style}`}>
+    <span
+      className={`inline-flex rounded-full px-3 py-1 text-xs font-semibold capitalize ${style}`}
+    >
       {normalizedStatus}
-    </span>
-  );
-}type Props = {
-  status: string;
-};
-
-export default function StatusBadge({ status }: Props) {
-  let color = "bg-gray-300";
-
-  if (status === "approved") color = "bg-green-500 text-white";
-  if (status === "pending") color = "bg-yellow-400";
-  if (status === "rejected") color = "bg-red-500 text-white";
-
-  return (
-    <span className={`px-3 py-1 rounded text-sm ${color}`}>
-      {status}
     </span>
   );
 }

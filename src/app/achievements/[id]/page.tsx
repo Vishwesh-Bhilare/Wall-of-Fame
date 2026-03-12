@@ -47,18 +47,29 @@ export default function AchievementDetails() {
   }, [params?.id]);
 
   if (loading) {
-    return <div className="p-8 text-center text-gray-500">Loading achievement details...</div>;
+    return (
+      <div className="p-8 text-center text-gray-500">
+        Loading achievement details...
+      </div>
+    );
   }
 
   if (!achievement) {
-    return <div className="p-8 text-center text-gray-500">Achievement not found.</div>;
+    return (
+      <div className="p-8 text-center text-gray-500">
+        Achievement not found.
+      </div>
+    );
   }
 
   return (
     <div className="min-h-screen px-4 py-6 md:px-8 md:py-8">
       <div className="mx-auto w-full max-w-4xl">
         <div className="mb-4 flex items-center justify-between">
-          <h1 className="text-2xl font-black text-gray-900 md:text-3xl">Achievement Details</h1>
+          <h1 className="text-2xl font-black text-gray-900 md:text-3xl">
+            Achievement Details
+          </h1>
+
           <Link href="/achievements" className="brand-button-secondary">
             Back
           </Link>
@@ -66,33 +77,53 @@ export default function AchievementDetails() {
 
         <div className="brand-card p-6 md:p-8">
           <div className="mb-3 flex flex-wrap items-start justify-between gap-2">
-            <h2 className="text-2xl font-bold text-gray-900">{achievement.title}</h2>
-            <span className={`rounded-full px-3 py-1 text-xs font-semibold ${statusStyles[achievement.status]}`}>
+            <h2 className="text-2xl font-bold text-gray-900">
+              {achievement.title}
+            </h2>
+
+            <span
+              className={`rounded-full px-3 py-1 text-xs font-semibold ${statusStyles[achievement.status]}`}
+            >
               {achievement.status}
             </span>
           </div>
 
           <div className="grid gap-4 text-sm text-gray-700 md:grid-cols-2">
             <p>
-              <span className="font-semibold text-gray-900">Type:</span> {achievement.type}
+              <span className="font-semibold text-gray-900">Type:</span>{" "}
+              {achievement.type}
             </p>
+
             <p>
-              <span className="font-semibold text-gray-900">Rank / ID:</span> {achievement.rank || "-"}
+              <span className="font-semibold text-gray-900">Rank / ID:</span>{" "}
+              {achievement.rank || "-"}
             </p>
+
             <p>
               <span className="font-semibold text-gray-900">GitHub:</span>{" "}
               {achievement.github ? (
-                <a href={achievement.github} target="_blank" className="text-red-700 hover:underline" rel="noreferrer">
+                <a
+                  href={achievement.github}
+                  target="_blank"
+                  rel="noreferrer"
+                  className="text-red-700 hover:underline"
+                >
                   Open link
                 </a>
               ) : (
                 "-"
               )}
             </p>
+
             <p>
               <span className="font-semibold text-gray-900">YouTube:</span>{" "}
               {achievement.youtube ? (
-                <a href={achievement.youtube} target="_blank" className="text-red-700 hover:underline" rel="noreferrer">
+                <a
+                  href={achievement.youtube}
+                  target="_blank"
+                  rel="noreferrer"
+                  className="text-red-700 hover:underline"
+                >
                   Open link
                 </a>
               ) : (
@@ -103,105 +134,24 @@ export default function AchievementDetails() {
 
           <div className="mt-5 border-t border-red-50 pt-4">
             <p className="text-sm font-semibold text-gray-900">Description</p>
-            <p className="mt-2 text-sm text-gray-700">{achievement.description || "No description provided."}</p>
+
+            <p className="mt-2 text-sm text-gray-700">
+              {achievement.description || "No description provided."}
+            </p>
           </div>
 
-          {achievement.certificate ? (
+          {achievement.certificate && (
             <a
               href={`${process.env.NEXT_PUBLIC_SUPABASE_URL}/storage/v1/object/public/certificates/${achievement.certificate}`}
               target="_blank"
-              className="mt-5 inline-flex rounded-lg bg-red-50 px-4 py-2 text-sm font-semibold text-red-700 hover:bg-red-100"
               rel="noreferrer"
+              className="mt-5 inline-flex rounded-lg bg-red-50 px-4 py-2 text-sm font-semibold text-red-700 hover:bg-red-100"
             >
               View certificate
             </a>
-          ) : null}
+          )}
         </div>
       </div>
     </div>
   );
-}"use client"
-
-import { useEffect,useState } from "react"
-import { supabase } from "@/lib/supabaseClient"
-import { useParams } from "next/navigation"
-
-export default function AchievementDetails(){
-
-const { id } = useParams()
-
-const [achievement,setAchievement] = useState<any>(null)
-
-useEffect(()=>{
-fetchAchievement()
-},[])
-
-const fetchAchievement = async ()=>{
-
-const { data } = await supabase
-.from("achievements")
-.select("*")
-.eq("id",id)
-.single()
-
-if(data) setAchievement(data)
-
-}
-
-if(!achievement){
-return <div className="p-10">Loading...</div>
-}
-
-return(
-
-<div className="p-10">
-
-<h1 className="text-3xl font-bold mb-6">
-Achievement Details
-</h1>
-
-<div className="bg-white p-6 rounded shadow max-w-xl">
-
-<h2 className="text-2xl font-bold">
-{achievement.title}
-</h2>
-
-<p className="text-gray-500 mt-2">
-Type: {achievement.type}
-</p>
-
-<p className="mt-4">
-{achievement.description}
-</p>
-
-{achievement.certificate && (
-
-<a
-href={`${process.env.NEXT_PUBLIC_SUPABASE_URL}/storage/v1/object/public/certificates/${achievement.certificate}`}
-target="_blank"
-className="text-blue-600 block mt-4"
->
-
-View Certificate
-
-</a>
-
-)}
-
-<span
-className={`inline-block mt-4 px-3 py-1 rounded-full text-sm
-${achievement.status==="approved" && "bg-green-100 text-green-700"}
-${achievement.status==="pending" && "bg-yellow-100 text-yellow-700"}
-${achievement.status==="rejected" && "bg-red-100 text-red-700"}
-`}
->
-
-{achievement.status}
-
-</span>
-
-</div>
-
-</div>
-)
 }
