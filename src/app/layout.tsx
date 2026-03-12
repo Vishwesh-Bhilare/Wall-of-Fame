@@ -1,19 +1,23 @@
+import type { Metadata } from "next";
 import "./globals.css";
 
-export const metadata = {
-  title: "Student Achievement Portal",
-  description: "Wall of Fame for College Achievements",
+export const metadata: Metadata = {
+  title: "MMCOE Wall of Fame",
+  description:
+    "A production-grade student achievement portal for MMCOE to showcase verified academic, technical, and extracurricular excellence.",
 };
 
 export default function RootLayout({
   children,
-}: {
+}: Readonly<{
   children: React.ReactNode;
-}) {
+}>) {
   return (
     <html lang="en">
-      <body className="bg-gray-100 text-gray-900">
-        <main className="min-h-screen">{children}</main>
+      <body>
+        <div className="app-shell">
+          <main className="min-h-screen">{children}</main>
+        </div>
       </body>
     </html>
   );

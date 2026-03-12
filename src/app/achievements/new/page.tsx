@@ -1,135 +1,192 @@
-"use client"
+"use client";
 
-import { useState } from "react"
-import { supabase } from "@/lib/supabaseClient"
+import { FormEvent, useState } from "react";
+import { supabase } from "@/lib/supabaseClient";
+import Link from "next/link";
 
 export default function AchievementForm() {
+  const [type, setType] = useState("Patent");
+  const [title, setTitle] = useState("");
+  const [rank, setRank] = useState("");
+  const [github, setGithub] = useState("");
+  const [youtube, setYoutube] = useState("");
+  const [description, setDescription] = useState("");
+  const [file, setFile] = useState<File | null>(null);
+  const [submitting, setSubmitting] = useState(false);
 
-const [type,setType] = useState("Patent")
-const [title,setTitle] = useState("")
-const [rank,setRank] = useState("")
-const [github,setGithub] = useState("")
-const [youtube,setYoutube] = useState("")
-const [description,setDescription] = useState("")
-const [file,setFile] = useState<File | null>(null)
+  const submitAchievement = async (e: FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
 
-const submitAchievement = async (e:any) => {
+    if (!title || !description) {
+      alert("Please add title and description");
+      return;
+    }
 
-e.preventDefault() // 🔴 VERY IMPORTANT
+    setSubmitting(true);
 
-console.log("Submitting achievement...")
+    const { data: userData } = await supabase.auth.getUser();
+    const user = userData?.user;
+    if (!user) {
+      alert("User not logged in");
+      setSubmitting(false);
+      return;
+    }
 
-const { data:{user} } = await supabase.auth.getUser()
+    let certificate = "";
 
-if(!user){
-alert("User not logged in")
-return
-}
+    if (file) {
+      const { data, error } = await supabase.storage
+        .from("certificates")
+        .upload(`proof-${Date.now()}-${file.name}`, file);
 
-let certificate = ""
+      if (error) {
+        alert(error.message);
+        setSubmitting(false);
+        return;
+      }
 
-if(file){
+      certificate = data.path;
+    }
 
-const { data,error } = await supabase.storage
-.from("certificates")
-.upload(`proof-${Date.now()}-${file.name}`,file)
+    const { error } = await supabase.from("achievements").insert({
+      user_id: user.id,
+      title,
+      type,
+      rank,
+      github,
+      youtube,
+      description,
+      certificate,
+      status: "pending",
+    });
 
-if(error){
-console.log(error)
-alert(error.message)
-return
-}
+    if (error) {
+      alert(error.message);
+      setSubmitting(false);
+      return;
+    }
 
-certificate = data.path
-}
+    alert("Achievement submitted for admin approval.");
+    setSubmitting(false);
+    setTitle("");
+    setRank("");
+    setGithub("");
+    setYoutube("");
+    setDescription("");
+    setFile(null);
+  };
 
-const { error } = await supabase
-.from("achievements")
-.insert({
-user_id:user.id,
-title,
-type,
-rank,
-github,
-youtube,
-description,
-certificate,
-status:"pending"
-})
+  return (
+    <div className="min-h-screen px-4 py-6 md:px-8 md:py-8">
+      <div className="mx-auto w-full max-w-3xl">
+        <div className="mb-6 flex items-center justify-between">
+          <div>
+            <p className="text-xs font-semibold uppercase tracking-[0.15em] text-red-700">Submission</p>
+            <h1 className="text-2xl font-black text-gray-900 md:text-3xl">Submit New Achievement</h1>
+          </div>
+          <Link href="/achievements" className="brand-button-secondary">
+            Back
+          </Link>
+        </div>
 
-if(error){
-console.log(error)
-alert(error.message)
-return
-}
+        <form onSubmit={submitAchievement} className="brand-card space-y-4 p-6 md:p-8">
+          <div>
+            <label className="brand-label" htmlFor="type">
+              Category
+            </label>
+            <select id="type" value={type} onChange={(e) => setType(e.target.value)} className="brand-input">
+              <option>Hackathon</option>
+              <option>Patent</option>
+              <option>Course Completion</option>
+              <option>Extra Curricular</option>
+              <option>Research Publication</option>
+            </select>
+          </div>
 
-alert("Achievement submitted successfully")
+          <div>
+            <label className="brand-label" htmlFor="title">
+              Achievement Title
+            </label>
+            <input
+              id="title"
+              value={title}
+              onChange={(e) => setTitle(e.target.value)}
+              className="brand-input"
+              placeholder="National Hackathon Finalist"
+            />
+          </div>
 
-}
+          <div>
+            <label className="brand-label" htmlFor="rank">
+              Rank / Patent Number (optional)
+            </label>
+            <input
+              id="rank"
+              value={rank}
+              onChange={(e) => setRank(e.target.value)}
+              className="brand-input"
+              placeholder="Top 10 / 2024-XX-YYY"
+            />
+          </div>
 
-return (
+          <div className="grid gap-4 md:grid-cols-2">
+            <div>
+              <label className="brand-label" htmlFor="github">
+                GitHub Link (optional)
+              </label>
+              <input
+                id="github"
+                value={github}
+                onChange={(e) => setGithub(e.target.value)}
+                className="brand-input"
+                placeholder="https://github.com/..."
+              />
+            </div>
 
-<form
-onSubmit={submitAchievement}
-className="space-y-4"
->
+            <div>
+              <label className="brand-label" htmlFor="youtube">
+                YouTube Demo (optional)
+              </label>
+              <input
+                id="youtube"
+                value={youtube}
+                onChange={(e) => setYoutube(e.target.value)}
+                className="brand-input"
+                placeholder="https://youtube.com/..."
+              />
+            </div>
+          </div>
 
-<select
-value={type}
-onChange={(e)=>setType(e.target.value)}
-className="w-full border p-3 rounded"
->
+          <div>
+            <label className="brand-label" htmlFor="description">
+              Description
+            </label>
+            <textarea
+              id="description"
+              value={description}
+              onChange={(e) => setDescription(e.target.value)}
+              className="brand-input min-h-28"
+              placeholder="Explain your achievement impact, scope, and outcomes."
+            />
+          </div>
 
-<option>Hackathon</option>
-<option>Patent</option>
-<option>Course Completion</option>
-<option>Extra Curricular</option>
+          <div>
+            <label className="brand-label" htmlFor="certificate">
+              Upload Certificate / Proof (optional)
+            </label>
+            <input
+              id="certificate"
+              type="file"
+              onChange={(e) => setFile(e.target.files?.[0] || null)}
+              className="brand-input file:mr-3 file:rounded-md file:border-0 file:bg-red-600 file:px-3 file:py-2 file:text-sm file:font-semibold file:text-white"
+            />
+          </div>
 
-</select>
-
-<input
-placeholder="Achievement Title"
-className="w-full border p-3 rounded"
-onChange={(e)=>setTitle(e.target.value)}
-/>
-
-<input
-placeholder="Rank / Patent Number"
-className="w-full border p-3 rounded"
-onChange={(e)=>setRank(e.target.value)}
-/>
-
-<input
-placeholder="Github Link"
-className="w-full border p-3 rounded"
-onChange={(e)=>setGithub(e.target.value)}
-/>
-
-<input
-placeholder="Youtube Demo"
-className="w-full border p-3 rounded"
-onChange={(e)=>setYoutube(e.target.value)}
-/>
-
-<textarea
-placeholder="Description"
-className="w-full border p-3 rounded"
-onChange={(e)=>setDescription(e.target.value)}
-/>
-
-<input
-type="file"
-onChange={(e)=>setFile(e.target.files?.[0] || null)}
-/>
-
-<button
-type="submit"
-className="bg-green-600 text-white px-6 py-2 rounded"
->
-Submit
-</button>
-
-</form>
-
-)
+          <button type="submit" className="brand-button w-full" disabled={submitting}>
+            {submitting ? "Submitting..." : "Submit for Verification"}
+          </button>
+        </form>
+      </div>
+    </div>
+  );
 }

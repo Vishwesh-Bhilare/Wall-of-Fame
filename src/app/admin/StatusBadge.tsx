@@ -2,16 +2,19 @@ type Props = {
   status: string;
 };
 
-export default function StatusBadge({ status }: Props) {
-  let color = "bg-gray-300";
+const statusStyleMap: Record<string, string> = {
+  approved: "bg-emerald-100 text-emerald-700 border border-emerald-200",
+  pending: "bg-amber-100 text-amber-700 border border-amber-200",
+  rejected: "bg-rose-100 text-rose-700 border border-rose-200",
+};
 
-  if (status === "approved") color = "bg-green-500 text-white";
-  if (status === "pending") color = "bg-yellow-400";
-  if (status === "rejected") color = "bg-red-500 text-white";
+export default function StatusBadge({ status }: Props) {
+  const normalizedStatus = status?.toLowerCase() || "pending";
+  const style = statusStyleMap[normalizedStatus] || "bg-gray-100 text-gray-700 border border-gray-200";
 
   return (
-    <span className={`px-3 py-1 rounded text-sm ${color}`}>
-      {status}
+    <span className={`inline-flex rounded-full px-3 py-1 text-xs font-semibold capitalize ${style}`}>
+      {normalizedStatus}
     </span>
   );
 }
