@@ -21,41 +21,45 @@ export default function AdminLoginPage() {
 
     setLoading(true);
 
-    const { error } = await supabase.auth.signInWithPassword({ email, password });
+    try {
+      const { error } = await supabase.auth.signInWithPassword({ email, password });
 
-    if (error) {
-      alert(error.message);
+      if (error) {
+        alert(error.message);
+        return;
+      }
+
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
+
+      if (!user) {
+        alert("Unable to fetch authenticated user.");
+        return;
+      }
+
+      const { data: profile } = await supabase
+        .from("profiles")
+        .select("role")
+        .eq("id", user.id)
+        .maybeSingle();
+
+      const role = profile?.role as UserRole | undefined;
+      const isAdmin = role === "admin" || role === "head_admin";
+
+      if (!isAdmin) {
+        await supabase.auth.signOut();
+        alert("This account does not have admin access.");
+        return;
+      }
+
+      router.push("/admin/dashboard");
+    } catch (error) {
+      console.error("Login failed:", error);
+      alert("Unable to login right now. Please try again.");
+    } finally {
       setLoading(false);
-      return;
     }
-
-    const {
-      data: { user },
-    } = await supabase.auth.getUser();
-
-    if (!user) {
-      alert("Unable to fetch authenticated user.");
-      setLoading(false);
-      return;
-    }
-
-    const { data: profile } = await supabase
-      .from("profiles")
-      .select("role")
-      .eq("id", user.id)
-      .maybeSingle();
-
-    const role = profile?.role as UserRole | undefined;
-    const isAdmin = role === "admin" || role === "head_admin";
-
-    if (!isAdmin) {
-      await supabase.auth.signOut();
-      alert("This account does not have admin access.");
-      setLoading(false);
-      return;
-    }
-
-    router.push("/admin/dashboard");
   };
 
   return (
