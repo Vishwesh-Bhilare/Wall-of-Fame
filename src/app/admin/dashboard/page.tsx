@@ -39,8 +39,12 @@ export default function AdminDashboard() {
     const { data, error } = await supabase
       .from("achievements")
       .select("id,title,type,status,description,rank,submitted_at,academic_year,accomplishment_date,submitter_email,certificate,verified_by,profiles(name,email),verifier_profile:profiles!achievements_verified_by_fkey(name,email)")
+<<<<<<< codex/add-admin-and-head-admin-tabs-v661je
       .order("created_at", { ascending: false })
       .order("id", { ascending: false });
+=======
+      .order("created_at", { ascending: false });
+>>>>>>> main
 
     if (error) {
       console.error(error);
@@ -54,7 +58,10 @@ export default function AdminDashboard() {
 
   useEffect(() => {
     let channel: ReturnType<typeof supabase.channel> | null = null;
+<<<<<<< codex/add-admin-and-head-admin-tabs-v661je
     let intervalId: ReturnType<typeof setInterval> | null = null;
+=======
+>>>>>>> main
 
     const verifyAdminAndLoad = async () => {
       const {
@@ -81,11 +88,16 @@ export default function AdminDashboard() {
       setAdminId(user.id);
       setAuthorizing(false);
 
+<<<<<<< codex/add-admin-and-head-admin-tabs-v661je
       await fetchAchievements(true);
+=======
+      await fetchAchievements();
+>>>>>>> main
 
       channel = supabase
         .channel("admin-achievements-live")
         .on("postgres_changes", { event: "*", schema: "public", table: "achievements" }, () => {
+<<<<<<< codex/add-admin-and-head-admin-tabs-v661je
           fetchAchievements(false);
         })
         .subscribe();
@@ -93,12 +105,20 @@ export default function AdminDashboard() {
       intervalId = setInterval(() => {
         fetchAchievements(false);
       }, 8000);
+=======
+          fetchAchievements();
+        })
+        .subscribe();
+>>>>>>> main
     };
 
     verifyAdminAndLoad();
 
     return () => {
+<<<<<<< codex/add-admin-and-head-admin-tabs-v661je
       if (intervalId) clearInterval(intervalId);
+=======
+>>>>>>> main
       if (channel) {
         supabase.removeChannel(channel);
       }
