@@ -1,11 +1,22 @@
-"use client"
+"use client";
 
-import { useEffect, useState } from "react"
-import { supabase } from "@/lib/supabaseClient"
-import StatsCard from "@/components/dashboard/StatsCard"
-import ActivityFeed from "@/components/dashboard/ActivityFeed"
+import { useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
+import { supabase } from "@/lib/supabaseClient";
+import StatsCard from "@/components/dashboard/StatsCard";
+import ActivityFeed from "@/components/dashboard/ActivityFeed";
+import type { UserRole } from "@/types/user";
+
+type AchievementRow = {
+  id: string;
+  type: string;
+  title: string;
+  status: "pending" | "approved" | "rejected";
+  created_at: string;
+};
 
 export default function AdminDashboard() {
+  const router = useRouter();
 
   const [stats, setStats] = useState({
     total: 0,
@@ -14,60 +25,95 @@ export default function AdminDashboard() {
     rejected: 0,
   })
 
-  const [activities, setActivities] = useState<any[]>([])
+  const [activities, setActivities] = useState<{ id: string; message: string }[]>([]);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    fetchData()
-  }, [])
+    let channel: ReturnType<typeof supabase.channel> | null = null;
 
-  const fetchData = async () => {
+    const init = async () => {
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
 
-    const { data } = await supabase
+      if (!user) {
+        router.replace("/admin/login");
+        return;
+      }
+
+      const { data: profile } = await supabase.from("profiles").select("role").eq("id", user.id).maybeSingle();
+      const role = profile?.role as UserRole | undefined;
+
+      if (role !== "admin" && role !== "head_admin") {
+        router.replace("/student/login");
+        return;
+      }
+
+      await fetchData();
+
+      channel = supabase
+        .channel("normal-admin-dashboard")
+        .on("postgres_changes", { event: "*", schema: "public", table: "achievements" }, () => {
+          fetchData(false);
+        })
+        .subscribe();
+    };
+
+    init();
+
+    return () => {
+      if (channel) supabase.removeChannel(channel);
+    };
+  }, [router]);
+
+  const fetchData = async (showLoading = true) => {
+    if (showLoading) setLoading(true);
+
+    const { data, error } = await supabase
       .from("achievements")
-      .select("*")
+      .select("id,title,type,status,created_at")
+      .order("created_at", { ascending: false })
+      .order("id", { ascending: false });
 
-    if (!data) return
+    if (error || !data) {
+      if (showLoading) setLoading(false);
+      return;
+    }
 
-    const total = data.length
-    const pending = data.filter(a => a.status === "pending").length
-    const approved = data.filter(a => a.status === "approved").length
-    const rejected = data.filter(a => a.status === "rejected").length
+    const rows = data as AchievementRow[];
 
-    setStats({ total, pending, approved, rejected })
+    const total = rows.length;
+    const pending = rows.filter((a) => a.status === "pending").length;
+    const approved = rows.filter((a) => a.status === "approved").length;
+    const rejected = rows.filter((a) => a.status === "rejected").length;
 
-    const activityData = data.slice(0,5).map(a => ({
+    setStats({ total, pending, approved, rejected });
+
+    const activityData = rows.slice(0, 5).map((a) => ({
       id: a.id,
-      message: `New ${a.type} submitted: ${a.title}`
-    }))
+      message: `${a.status === "pending" ? "Pending" : "Updated"} ${a.type} submission: ${a.title}`,
+    }));
 
-    setActivities(activityData)
+    setActivities(activityData);
+    if (showLoading) setLoading(false);
+  };
+
+  if (loading) {
+    return <div className="min-h-screen p-10 text-gray-500">Loading admin dashboard...</div>;
   }
 
   return (
-    <div className="min-h-screen p-10 bg-gray-50">
+    <div className="min-h-screen bg-gray-50 p-10">
+      <h1 className="mb-8 text-3xl font-bold">Admin Dashboard</h1>
 
-      <h1 className="text-3xl font-bold mb-8">
-        Admin Dashboard
-      </h1>
-
-      {/* Stats */}
-
-      <div className="grid grid-cols-4 gap-6 mb-10">
-
+      <div className="mb-10 grid grid-cols-4 gap-6">
         <StatsCard title="Total Achievements" value={stats.total} />
-
         <StatsCard title="Pending" value={stats.pending} color="text-yellow-500" />
-
         <StatsCard title="Approved" value={stats.approved} color="text-green-600" />
-
         <StatsCard title="Rejected" value={stats.rejected} color="text-red-600" />
-
       </div>
 
-      {/* Activity */}
-
       <ActivityFeed activities={activities} />
-
     </div>
-  )
+  );
 }
