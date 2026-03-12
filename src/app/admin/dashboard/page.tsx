@@ -12,6 +12,9 @@ type Achievement = {
   title: string;
   type: string;
   status: "approved" | "pending" | "rejected";
+  description?: string;
+  rank?: string;
+  submitted_at?: string;
   certificate?: string;
   profiles?: { name?: string } | null;
 };
@@ -27,7 +30,7 @@ export default function AdminDashboard() {
 
     const { data, error } = await supabase
       .from("achievements")
-      .select("id,title,type,status,certificate,profiles(name)")
+      .select("id,title,type,status,description,rank,submitted_at,certificate,profiles(name)")
       .order("created_at", { ascending: false });
 
     if (error) {
@@ -145,6 +148,9 @@ export default function AdminDashboard() {
                   student={a.profiles?.name || "Unknown Student"}
                   type={a.type}
                   status={a.status}
+                  description={a.description}
+                  rank={a.rank}
+                  submittedAt={a.submitted_at}
                   certificateUrl={
                     a.certificate
                       ? `${process.env.NEXT_PUBLIC_SUPABASE_URL}/storage/v1/object/public/certificates/${a.certificate}`

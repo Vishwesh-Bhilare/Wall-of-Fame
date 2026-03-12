@@ -1,28 +1,49 @@
 import { supabase } from "../lib/supabaseClient";
+import type { Achievement, CreateAchievementInput } from "../types/achievement";
 
 export async function getAchievements(userId: string) {
   const { data, error } = await supabase
     .from("achievements")
     .select("*")
-    .eq("user_id", userId);
+    .eq("user_id", userId)
+    .order("created_at", { ascending: false });
 
-  return { data, error };
+  return { data: (data as Achievement[]) || [], error };
 }
 
-export async function createAchievement(payload: any) {
+export async function createAchievement(payload: CreateAchievementInput) {
+  const enrichedPayload = {
+    ...payload,
+    submitted_at: new Date().toISOString(),
+    status: "pending" as const,
+  };
+
   const { data, error } = await supabase
     .from("achievements")
-    .insert(payload);
+    .insert(enrichedPayload)
+    .select("*")
+    .single();
 
-  return { data, error };
+  return { data: (data as Achievement | null) || null, error };
 }
 
 export async function getAchievementById(id: string) {
   const { data, error } = await supabase
     .from("achievements")
-    .select("*")
+    .select("*,profiles(name,department,year)")
     .eq("id", id)
     .single();
 
-  return { data, error };
+  return { data: (data as Achievement | null) || null, error };
+}
+
+export async function getPublicApprovedAchievements(limit = 60) {
+  const { data, error } = await supabase
+    .from("achievements")
+    .select("id,title,type,status,description,rank,created_at")
+    .eq("status", "approved")
+    .order("created_at", { ascending: false })
+    .limit(limit);
+
+  return { data: (data as Achievement[]) || [], error };
 }

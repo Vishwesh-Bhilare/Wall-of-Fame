@@ -4,29 +4,61 @@ export type AchievementType =
   | "publication"
   | "hackathon"
   | "patent"
-  | "copyright";
+  | "copyright"
+  | "course"
+  | "extracurricular";
 
 export interface Achievement {
   id: string;
-  user_id: string;
+  user_id?: string;
 
   title: string;
   type: AchievementType;
-  description?: string;
+  description?: string | null;
 
   status: AchievementStatus;
 
-  event_name?: string;
-  rank?: string;
-  team_size?: number;
+  event_name?: string | null;
+  rank?: string | null;
+  team_size?: number | null;
 
-  doi?: string;
-  journal_name?: string;
-  indexing?: string;
+  doi?: string | null;
+  journal_name?: string | null;
+  indexing?: string | null;
 
-  patent_number?: string;
-  copyright_number?: string;
+  patent_number?: string | null;
+  copyright_number?: string | null;
 
-  submitted_at?: string;
-  verified_at?: string;
+  github?: string | null;
+  youtube?: string | null;
+  certificate?: string | null;
+
+  submitted_at?: string | null;
+  verified_at?: string | null;
+  created_at?: string;
+  updated_at?: string;
+
+  profiles?: {
+    name?: string | null;
+    department?: string | null;
+    year?: number | null;
+  } | null;
 }
+
+export type CreateAchievementInput = Pick<
+  Achievement,
+  | "user_id"
+  | "title"
+  | "type"
+  | "description"
+  | "event_name"
+  | "rank"
+  | "doi"
+  | "journal_name"
+  | "indexing"
+  | "patent_number"
+  | "copyright_number"
+  | "github"
+  | "youtube"
+  | "certificate"
+>;
