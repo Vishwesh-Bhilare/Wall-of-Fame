@@ -36,9 +36,21 @@ export default function AdminDashboard() {
   const fetchAchievements = async (showLoader = true) => {
     if (showLoader) setLoading(true);
 
-    const { data, error } = await supabase
+    const { data: detailedData, error: detailedError } = await supabase
       .from("achievements")
       .select("id,title,type,status,description,rank,submitted_at,academic_year,accomplishment_date,submitter_email,certificate,verified_by,profiles(name,email),verifier_profile:profiles!achievements_verified_by_fkey(name,email)")
+      .order("created_at", { ascending: false })
+      .order("id", { ascending: false });
+
+    if (!detailedError) {
+      setAchievements((detailedData as Achievement[]) || []);
+      if (showLoader) setLoading(false);
+      return;
+    }
+
+    const { data, error } = await supabase
+      .from("achievements")
+      .select("id,title,type,status,description,rank,submitted_at,certificate,profiles(name,email)")
       .order("created_at", { ascending: false })
       .order("id", { ascending: false });
 
