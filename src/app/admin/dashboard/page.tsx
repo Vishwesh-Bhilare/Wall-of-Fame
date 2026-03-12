@@ -1,9 +1,11 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
+import { useRouter } from "next/navigation";
 import { supabase } from "@/lib/supabaseClient";
 import ReviewPanel from "../ReviewPanel";
 import StatsCard from "@/components/dashboard/StatsCard";
+import type { UserRole } from "@/types/user";
 
 type Achievement = {
   id: string;
@@ -15,8 +17,10 @@ type Achievement = {
 };
 
 export default function AdminDashboard() {
+  const router = useRouter();
   const [achievements, setAchievements] = useState<Achievement[]>([]);
   const [loading, setLoading] = useState(true);
+  const [authorizing, setAuthorizing] = useState(true);
 
   const fetchAchievements = async () => {
     setLoading(true);
@@ -37,8 +41,37 @@ export default function AdminDashboard() {
   };
 
   useEffect(() => {
-    fetchAchievements();
-  }, []);
+    const verifyAdminAndLoad = async () => {
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
+
+      if (!user) {
+        router.replace("/admin/login");
+        return;
+      }
+
+      const { data: profile } = await supabase
+        .from("profiles")
+        .select("role")
+        .eq("id", user.id)
+        .maybeSingle();
+
+      const role = profile?.role as UserRole | undefined;
+      const isAdmin = role === "admin" || role === "head_admin";
+
+      if (!isAdmin) {
+        await supabase.auth.signOut();
+        router.replace("/student/login");
+        return;
+      }
+
+      setAuthorizing(false);
+      fetchAchievements();
+    };
+
+    verifyAdminAndLoad();
+  }, [router]);
 
   const pendingItems = achievements.filter((a) => a.status === "pending");
 
@@ -56,10 +89,13 @@ export default function AdminDashboard() {
   }, [achievements]);
 
   const updateStatus = async (id: string, status: "approved" | "rejected") => {
-    const { error } = await supabase
-      .from("achievements")
-      .update({ status })
-      .eq("id", id);
+    const updates: { status: "approved" | "rejected"; verified_at?: string } = { status };
+
+    if (status === "approved") {
+      updates.verified_at = new Date().toISOString();
+    }
+
+    const { error } = await supabase.from("achievements").update(updates).eq("id", id);
 
     if (error) {
       alert(error.message);
@@ -69,17 +105,17 @@ export default function AdminDashboard() {
     fetchAchievements();
   };
 
+  if (authorizing) {
+    return <div className="p-8 text-center text-gray-500">Checking admin access...</div>;
+  }
+
   return (
     <div className="min-h-screen px-4 py-6 md:px-8 md:py-8">
       <div className="mx-auto w-full max-w-7xl">
         <div className="mb-6">
-          <p className="text-xs font-semibold uppercase tracking-[0.15em] text-red-700">
-            Admin
-          </p>
+          <p className="text-xs font-semibold uppercase tracking-[0.15em] text-red-700">Admin</p>
 
-          <h1 className="text-2xl font-black text-gray-900 md:text-3xl">
-            Review & Verification Dashboard
-          </h1>
+          <h1 className="text-2xl font-black text-gray-900 md:text-3xl">Review & Verification Dashboard</h1>
 
           <p className="mt-1 text-sm text-gray-600">
             Approve or reject student submissions before publishing to the Wall of Fame.
@@ -94,18 +130,12 @@ export default function AdminDashboard() {
         </div>
 
         <div className="mt-7">
-          <h2 className="mb-3 text-xl font-bold text-gray-900">
-            Pending Reviews
-          </h2>
+          <h2 className="mb-3 text-xl font-bold text-gray-900">Pending Reviews</h2>
 
           {loading ? (
-            <div className="brand-card p-8 text-center text-gray-500">
-              Loading submissions...
-            </div>
+            <div className="brand-card p-8 text-center text-gray-500">Loading submissions...</div>
           ) : pendingItems.length === 0 ? (
-            <div className="brand-card p-8 text-center text-gray-500">
-              No pending achievements. Great job!
-            </div>
+            <div className="brand-card p-8 text-center text-gray-500">No pending achievements. Great job!</div>
           ) : (
             <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
               {pendingItems.map((a) => (

@@ -2,15 +2,10 @@
 
 import { useEffect, useState } from "react";
 import { supabase } from "@/lib/supabaseClient";
-
-type Profile = {
-  id: string;
-  email?: string;
-  role?: string;
-};
+import type { UserProfile } from "@/types/user";
 
 export default function ProfilePage() {
-  const [profile, setProfile] = useState<Profile | null>(null);
+  const [profile, setProfile] = useState<UserProfile | null>(null);
   const [achievementCount, setAchievementCount] = useState(0);
 
   useEffect(() => {
@@ -21,8 +16,8 @@ export default function ProfilePage() {
       if (!user) return;
 
       const { data: userProfile } = await supabase
-        .from("users")
-        .select("id,email,role")
+        .from("profiles")
+        .select("id,name,email,prn,department,year,role,github_url")
         .eq("id", user.id)
         .maybeSingle();
 
@@ -32,7 +27,7 @@ export default function ProfilePage() {
         .eq("user_id", user.id);
 
       setProfile(
-        (userProfile as Profile) || {
+        (userProfile as UserProfile) || {
           id: user.id,
           email: user.email || "",
           role: "student",
@@ -48,50 +43,51 @@ export default function ProfilePage() {
   return (
     <div className="min-h-screen px-4 py-6 md:px-8 md:py-8">
       <div className="mx-auto w-full max-w-5xl">
-        <h1 className="text-2xl font-black text-gray-900 md:text-3xl">
-          My Profile
-        </h1>
+        <h1 className="text-2xl font-black text-gray-900 md:text-3xl">My Profile</h1>
 
         <div className="mt-5 grid gap-4 md:grid-cols-[1.4fr_0.8fr]">
           <div className="brand-card p-6 md:p-8">
-            <p className="text-xs font-semibold uppercase tracking-[0.15em] text-red-700">
-              Identity
-            </p>
+            <p className="text-xs font-semibold uppercase tracking-[0.15em] text-red-700">Identity</p>
 
-            <h2 className="mt-1 text-xl font-bold text-gray-900">
-              Student Account
-            </h2>
+            <h2 className="mt-1 text-xl font-bold text-gray-900">{profile?.role === "admin" ? "Admin Account" : "Student Account"}</h2>
 
             <div className="mt-5 space-y-3 text-sm text-gray-700">
               <p>
-                <span className="font-semibold text-gray-900">Email:</span>{" "}
-                {profile?.email || "Not available"}
+                <span className="font-semibold text-gray-900">Name:</span> {profile?.name || "Not available"}
               </p>
 
               <p>
-                <span className="font-semibold text-gray-900">Role:</span>{" "}
-                {profile?.role || "student"}
+                <span className="font-semibold text-gray-900">Email:</span> {profile?.email || "Not available"}
               </p>
 
               <p>
-                <span className="font-semibold text-gray-900">Profile ID:</span>{" "}
-                {profile?.id || "-"}
+                <span className="font-semibold text-gray-900">Role:</span> {profile?.role || "student"}
+              </p>
+
+              <p>
+                <span className="font-semibold text-gray-900">Department:</span> {profile?.department || "-"}
+              </p>
+
+              <p>
+                <span className="font-semibold text-gray-900">Year:</span> {profile?.year || "-"}
+              </p>
+
+              <p>
+                <span className="font-semibold text-gray-900">PRN:</span> {profile?.prn || "-"}
+              </p>
+
+              <p>
+                <span className="font-semibold text-gray-900">Profile ID:</span> {profile?.id || "-"}
               </p>
             </div>
           </div>
 
           <div className="brand-card p-6 md:p-8">
-            <p className="text-xs font-semibold uppercase tracking-[0.15em] text-red-700">
-              Snapshot
-            </p>
+            <p className="text-xs font-semibold uppercase tracking-[0.15em] text-red-700">Snapshot</p>
 
-            <p className="mt-2 text-4xl font-black text-gray-900">
-              {achievementCount}
-            </p>
+            <p className="mt-2 text-4xl font-black text-gray-900">{achievementCount}</p>
 
-            <p className="mt-1 text-sm text-gray-600">
-              Total achievements submitted
-            </p>
+            <p className="mt-1 text-sm text-gray-600">Total achievements submitted</p>
           </div>
         </div>
       </div>
