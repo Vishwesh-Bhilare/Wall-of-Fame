@@ -40,7 +40,7 @@ export async function getAchievementById(id: string) {
 export async function getPublicApprovedAchievements(limit = 60) {
   const { data, error } = await supabase
     .from("achievements")
-    .select("id,title,type,status,description,rank,created_at,certificate")
+    .select("id,title,type,status,description,rank,created_at,certificate,academic_year,accomplishment_date,submitter_email")
     .eq("status", "approved")
     .order("created_at", { ascending: false })
     .limit(limit);

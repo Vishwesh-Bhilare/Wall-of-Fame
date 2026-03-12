@@ -9,6 +9,7 @@ import type { UserRole } from "@/types/user";
 export default function AdminLoginPage() {
   const router = useRouter();
 
+  const [loginMode, setLoginMode] = useState<"admin" | "head_admin">("admin");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
@@ -45,11 +46,15 @@ export default function AdminLoginPage() {
         .maybeSingle();
 
       const role = profile?.role as UserRole | undefined;
-      const isAdmin = role === "admin" || role === "head_admin";
+      const roleMatchesMode = loginMode === "admin" ? role === "admin" : role === "head_admin";
 
-      if (!isAdmin) {
+      if (!roleMatchesMode) {
         await supabase.auth.signOut();
-        alert("This account does not have admin access.");
+        alert(
+          loginMode === "head_admin"
+            ? "This account does not have head admin access."
+            : "This account does not have normal admin access.",
+        );
         return;
       }
 
@@ -110,12 +115,33 @@ export default function AdminLoginPage() {
           <div className="w-full max-w-md rounded-2xl border border-red-100 bg-white p-7 shadow-lg md:p-8">
             <h2 className="text-2xl font-extrabold text-gray-900">Admin Login</h2>
 
-            <p className="mt-1 text-sm text-gray-600">Use your admin credentials.</p>
+            <p className="mt-1 text-sm text-gray-600">Choose your portal and use the respective credentials.</p>
+
+            <div className="mt-5 grid grid-cols-2 gap-2 rounded-xl bg-red-50 p-1">
+              <button
+                type="button"
+                onClick={() => setLoginMode("admin")}
+                className={`rounded-lg px-3 py-2 text-sm font-semibold transition ${
+                  loginMode === "admin" ? "bg-white text-red-700 shadow" : "text-gray-600 hover:text-red-700"
+                }`}
+              >
+                Normal Admin
+              </button>
+              <button
+                type="button"
+                onClick={() => setLoginMode("head_admin")}
+                className={`rounded-lg px-3 py-2 text-sm font-semibold transition ${
+                  loginMode === "head_admin" ? "bg-white text-red-700 shadow" : "text-gray-600 hover:text-red-700"
+                }`}
+              >
+                Head Admin
+              </button>
+            </div>
 
             <div className="mt-6 space-y-4">
               <div>
                 <label htmlFor="admin-email" className="brand-label">
-                  Admin Email
+                  {loginMode === "head_admin" ? "Head Admin Email" : "Admin Email"}
                 </label>
 
                 <input
@@ -144,7 +170,7 @@ export default function AdminLoginPage() {
               </div>
 
               <button onClick={login} disabled={loading} className="brand-button w-full disabled:opacity-60">
-                {loading ? "Logging in..." : "Login as Admin"}
+                {loading ? "Logging in..." : loginMode === "head_admin" ? "Login as Head Admin" : "Login as Admin"}
               </button>
             </div>
 

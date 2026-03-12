@@ -1,4 +1,5 @@
 export type AchievementStatus = "pending" | "approved" | "rejected";
+export type AcademicYear = "FY" | "SY" | "TY" | "BE";
 
 export type AchievementType =
   | "publication"
@@ -16,6 +17,9 @@ export interface Achievement {
   title: string;
   type: AchievementType;
   description?: string | null;
+  academic_year?: AcademicYear | null;
+  accomplishment_date?: string | null;
+  submitter_email?: string | null;
 
   status: AchievementStatus;
 
@@ -58,6 +62,9 @@ export type CreateAchievementInput = Pick<
   | "title"
   | "type"
   | "description"
+  | "academic_year"
+  | "accomplishment_date"
+  | "submitter_email"
   | "event_name"
   | "rank"
   | "doi"

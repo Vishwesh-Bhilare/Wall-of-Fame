@@ -86,6 +86,19 @@ export default function AchievementDetailPage() {
             </p>
 
             <p>
+              <span className="font-semibold text-gray-900">Academic Year:</span> {achievement.academic_year || "-"}
+            </p>
+
+            <p>
+              <span className="font-semibold text-gray-900">Accomplishment Date:</span>{" "}
+              {achievement.accomplishment_date ? formatDate(achievement.accomplishment_date) : "-"}
+            </p>
+
+            <p>
+              <span className="font-semibold text-gray-900">Student Email:</span> {achievement.submitter_email || achievement.profiles?.email || "-"}
+            </p>
+
+            <p>
               <span className="font-semibold text-gray-900">Event / Platform:</span> {achievement.event_name || "-"}
             </p>
 
