@@ -9,14 +9,14 @@ import FileUpload from "./FileUpload";
 import Card from "../ui/Card";
 import { ACHIEVEMENT_TYPES } from "@/constants/achievementTypes";
 import { createAchievement } from "@/services/achievementService";
-import type { AchievementType } from "@/types/achievement";
+import type { AcademicYear, AchievementType } from "@/types/achievement";
 
 const CATEGORY_FIELDS: Record<AchievementType, Array<"event" | "rank" | "doi" | "journal" | "patent" | "copyright">> = {
   publication: ["event", "doi", "journal"],
   hackathon: ["event", "rank"],
   patent: ["event", "patent"],
   copyright: ["event", "copyright"],
-  course: ["event"],
+  course: ["event", "rank"],
   extracurricular: ["event", "rank"],
 };
 
@@ -25,6 +25,8 @@ export default function AchievementForm() {
   const [title, setTitle] = useState("");
   const [type, setType] = useState<AchievementType>("publication");
   const [description, setDescription] = useState("");
+  const [academicYear, setAcademicYear] = useState<AcademicYear | "">("");
+  const [accomplishmentDate, setAccomplishmentDate] = useState("");
   const [eventName, setEventName] = useState("");
   const [github, setGithub] = useState("");
   const [youtube, setYoutube] = useState("");
@@ -54,6 +56,16 @@ export default function AchievementForm() {
 
     if (!title.trim() || !description.trim()) {
       alert("Please fill title and description");
+      return;
+    }
+
+    if (!academicYear) {
+      alert("Please select your academic year (FY/SY/TY/BE)");
+      return;
+    }
+
+    if (!accomplishmentDate) {
+      alert("Please select accomplishment date");
       return;
     }
 
@@ -89,6 +101,9 @@ export default function AchievementForm() {
       title: title.trim(),
       type,
       description: description.trim(),
+      academic_year: academicYear,
+      accomplishment_date: accomplishmentDate,
+      submitter_email: user.email || null,
       event_name: eventName.trim() || null,
       github: github.trim() || null,
       youtube: youtube.trim() || null,
@@ -136,6 +151,35 @@ export default function AchievementForm() {
             <option value="course">Course Completion</option>
             <option value="extracurricular">Extra Curricular</option>
           </select>
+        </div>
+
+        <div className="grid gap-4 md:grid-cols-2">
+          <div>
+            <label className="mb-2 block text-sm font-semibold text-gray-700">Academic Year</label>
+            <select
+              value={academicYear}
+              onChange={(e) => setAcademicYear(e.target.value as AcademicYear)}
+              className="w-full rounded-xl border border-gray-200 bg-white px-4 py-3 text-sm text-gray-900 focus:border-red-600 focus:outline-none focus:ring-2 focus:ring-red-100"
+              required
+            >
+              <option value="">Select year</option>
+              <option value="FY">FY</option>
+              <option value="SY">SY</option>
+              <option value="TY">TY</option>
+              <option value="BE">BE</option>
+            </select>
+          </div>
+
+          <div>
+            <label className="mb-2 block text-sm font-semibold text-gray-700">Accomplishment Date</label>
+            <input
+              type="date"
+              value={accomplishmentDate}
+              onChange={(e) => setAccomplishmentDate(e.target.value)}
+              required
+              className="w-full rounded-xl border border-gray-200 bg-white px-4 py-3 text-sm text-gray-900 focus:border-red-600 focus:outline-none focus:ring-2 focus:ring-red-100"
+            />
+          </div>
         </div>
 
         {visibleFields.includes("event") && (

@@ -5,6 +5,7 @@ import { useEffect, useMemo, useState } from "react";
 import AchievementCard from "@/components/achievements/AchievementCard";
 import { getPublicApprovedAchievements } from "@/services/achievementService";
 import type { Achievement } from "@/types/achievement";
+import { supabase } from "@/lib/supabaseClient";
 
 export default function HomePage() {
   const [achievements, setAchievements] = useState<Achievement[]>([]);
@@ -13,21 +14,51 @@ export default function HomePage() {
   const [sortBy, setSortBy] = useState<"latest" | "oldest" | "title">("latest");
 
   useEffect(() => {
-    const fetchVerifiedAchievements = async () => {
-      setLoading(true);
-      const { data } = await getPublicApprovedAchievements(200);
-      setAchievements(data || []);
-      setLoading(false);
+    let mounted = true;
+    let channel: ReturnType<typeof supabase.channel> | null = null;
+
+    const fetchVerifiedAchievements = async (showLoader = false) => {
+      if (showLoader) setLoading(true);
+
+      const { data } = await getPublicApprovedAchievements();
+
+      if (mounted) {
+        setAchievements(data || []);
+        if (showLoader) setLoading(false);
+      }
     };
 
-    fetchVerifiedAchievements();
+    const init = async () => {
+      await fetchVerifiedAchievements(true);
+
+      channel = supabase
+        .channel("public-wall-live")
+        .on("postgres_changes", { event: "*", schema: "public", table: "achievements" }, () => {
+          fetchVerifiedAchievements(false);
+        })
+        .subscribe();
+    };
+
+    init();
+
+    const intervalId = window.setInterval(() => {
+      fetchVerifiedAchievements(false);
+    }, 10000);
+
+    return () => {
+      mounted = false;
+      window.clearInterval(intervalId);
+      if (channel) {
+        supabase.removeChannel(channel);
+      }
+    };
   }, []);
 
   const filteredAchievements = useMemo(() => {
     const query = search.trim().toLowerCase();
     const next = achievements.filter((a) => {
       if (!query) return true;
-      return [a.title, a.type, a.description || "", a.rank || ""].join(" ").toLowerCase().includes(query);
+      return [a.title, a.type, a.description || "", a.rank || "", a.academic_year || "", a.submitter_email || ""].join(" ").toLowerCase().includes(query);
     });
 
     return next.sort((a, b) => {
@@ -124,7 +155,7 @@ export default function HomePage() {
             type="text"
             value={search}
             onChange={(e) => setSearch(e.target.value)}
-            placeholder="Search by title, type, description, rank..."
+            placeholder="Search by title, type, description, rank, year, email..."
             className="w-full rounded-xl border border-gray-200 bg-white px-4 py-3 text-sm text-gray-900 focus:border-red-600 focus:outline-none focus:ring-2 focus:ring-red-100"
           />
 
@@ -154,6 +185,9 @@ export default function HomePage() {
                 status={item.status}
                 rank={item.rank}
                 description={item.description}
+                academicYear={item.academic_year}
+                accomplishmentDate={item.accomplishment_date}
+                submitterEmail={item.submitter_email}
                 createdAt={item.created_at}
                 ctaLabel="View details"
                 certificateUrl={

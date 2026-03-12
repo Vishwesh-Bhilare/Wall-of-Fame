@@ -24,9 +24,34 @@ export default function Dashboard() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const fetchAchievements = async () => {
+    let channel: ReturnType<typeof supabase.channel> | null = null;
+
+    const fetchAchievements = async (userId?: string) => {
       setLoading(true);
 
+      let activeUserId = userId;
+
+      if (!activeUserId) {
+        const { data: userData } = await supabase.auth.getUser();
+        activeUserId = userData?.user?.id;
+      }
+
+      if (!activeUserId) {
+        setLoading(false);
+        return;
+      }
+
+      const { data } = await supabase
+        .from("achievements")
+        .select("id,title,type,rank,status,created_at")
+        .eq("user_id", activeUserId)
+        .order("created_at", { ascending: false });
+
+      setAchievements((data as Achievement[]) || []);
+      setLoading(false);
+    };
+
+    const init = async () => {
       const { data: userData } = await supabase.auth.getUser();
       const user = userData?.user;
 
@@ -35,17 +60,27 @@ export default function Dashboard() {
         return;
       }
 
-      const { data } = await supabase
-        .from("achievements")
-        .select("id,title,type,rank,status,created_at")
-        .eq("user_id", user.id)
-        .order("created_at", { ascending: false });
+      await fetchAchievements(user.id);
 
-      setAchievements((data as Achievement[]) || []);
-      setLoading(false);
+      channel = supabase
+        .channel(`student-dashboard-${user.id}`)
+        .on(
+          "postgres_changes",
+          { event: "*", schema: "public", table: "achievements", filter: `user_id=eq.${user.id}` },
+          () => {
+            fetchAchievements(user.id);
+          },
+        )
+        .subscribe();
     };
 
-    fetchAchievements();
+    init();
+
+    return () => {
+      if (channel) {
+        supabase.removeChannel(channel);
+      }
+    };
   }, []);
 
   const stats = useMemo(() => {
@@ -93,7 +128,7 @@ export default function Dashboard() {
 
           <div className="brand-card p-5">
             <p className="text-xs font-semibold uppercase tracking-wider text-red-700">
-              Total
+              Total Submissions
             </p>
             <p className="mt-1 text-3xl font-black">
               {stats.total}

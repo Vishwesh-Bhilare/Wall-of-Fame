@@ -1,5 +1,15 @@
 export function formatDate(date: string) {
-  return new Date(date).toLocaleDateString();
+  const parsed = new Date(date);
+
+  if (Number.isNaN(parsed.getTime())) {
+    return "-";
+  }
+
+  const day = `${parsed.getDate()}`.padStart(2, "0");
+  const month = `${parsed.getMonth() + 1}`.padStart(2, "0");
+  const year = parsed.getFullYear();
+
+  return `${day}/${month}/${year}`;
 }
 
 export function capitalize(text: string) {
