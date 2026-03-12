@@ -4,7 +4,6 @@ import { useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import { supabase } from "@/lib/supabaseClient";
 import ReviewPanel from "../ReviewPanel";
-import StatsCard from "@/components/dashboard/StatsCard";
 import type { UserRole } from "@/types/user";
 
 type Achievement = {
@@ -50,6 +49,8 @@ export default function AdminDashboard() {
   };
 
   useEffect(() => {
+    let channel: ReturnType<typeof supabase.channel> | null = null;
+
     const verifyAdminAndLoad = async () => {
       const {
         data: { user },
@@ -74,10 +75,24 @@ export default function AdminDashboard() {
       setRole(nextRole || null);
       setAdminId(user.id);
       setAuthorizing(false);
-      fetchAchievements();
+
+      await fetchAchievements();
+
+      channel = supabase
+        .channel("admin-achievements-live")
+        .on("postgres_changes", { event: "*", schema: "public", table: "achievements" }, () => {
+          fetchAchievements();
+        })
+        .subscribe();
     };
 
     verifyAdminAndLoad();
+
+    return () => {
+      if (channel) {
+        supabase.removeChannel(channel);
+      }
+    };
   }, [router]);
 
   const pendingItems = achievements.filter((a) => a.status === "pending");
@@ -170,11 +185,26 @@ export default function AdminDashboard() {
           <p className="mt-1 text-sm text-gray-600">Approve or reject student submissions before publishing to the Wall of Fame.</p>
         </div>
 
-        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-          <StatsCard title="Total Submissions" value={stats.total} color="text-gray-900" />
-          <StatsCard title="Pending" value={stats.pending} color="text-amber-700" />
-          <StatsCard title="Approved" value={stats.approved} color="text-emerald-700" />
-          <StatsCard title="Rejected" value={stats.rejected} color="text-rose-700" />
+        <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+          <div className="brand-card border-l-4 border-l-red-600 p-5">
+            <p className="text-xs font-semibold uppercase tracking-[0.14em] text-gray-500">Total Submissions</p>
+            <p className="mt-2 text-3xl font-black text-gray-900">{stats.total}</p>
+          </div>
+
+          <div className="brand-card border-l-4 border-l-amber-500 p-5">
+            <p className="text-xs font-semibold uppercase tracking-[0.14em] text-gray-500">Pending</p>
+            <p className="mt-2 text-3xl font-black text-amber-700">{stats.pending}</p>
+          </div>
+
+          <div className="brand-card border-l-4 border-l-emerald-500 p-5">
+            <p className="text-xs font-semibold uppercase tracking-[0.14em] text-gray-500">Approved</p>
+            <p className="mt-2 text-3xl font-black text-emerald-700">{stats.approved}</p>
+          </div>
+
+          <div className="brand-card border-l-4 border-l-rose-500 p-5">
+            <p className="text-xs font-semibold uppercase tracking-[0.14em] text-gray-500">Rejected</p>
+            <p className="mt-2 text-3xl font-black text-rose-700">{stats.rejected}</p>
+          </div>
         </div>
 
         {role === "head_admin" && (
