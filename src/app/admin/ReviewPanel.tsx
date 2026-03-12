@@ -1,15 +1,20 @@
 import Button from "@/components/ui/Button";
 import Card from "@/components/ui/Card";
 import StatusBadge from "./StatusBadge";
+import { formatDate } from "@/lib/helpers";
 
 type Props = {
   title: string;
   student: string;
   type: string;
   status: string;
+  description?: string;
+  rank?: string;
+  submittedAt?: string;
   onApprove?: () => void;
   onReject?: () => void;
   certificateUrl?: string;
+  busy?: boolean;
 };
 
 export default function ReviewPanel({
@@ -17,9 +22,13 @@ export default function ReviewPanel({
   student,
   type,
   status,
+  description,
+  rank,
+  submittedAt,
   onApprove,
   onReject,
   certificateUrl,
+  busy,
 }: Props) {
   return (
     <Card className="h-full">
@@ -31,6 +40,12 @@ export default function ReviewPanel({
 
         <p className="text-sm text-gray-600">Submitted by: {student}</p>
         <p className="mt-1 text-sm font-semibold text-red-700">{type}</p>
+
+        {rank ? <p className="mt-2 text-sm text-gray-600">Rank/ID: {rank}</p> : null}
+
+        {description ? <p className="mt-2 line-clamp-3 text-sm text-gray-600">{description}</p> : null}
+
+        {submittedAt ? <p className="mt-2 text-xs text-gray-500">Submitted on {formatDate(submittedAt)}</p> : null}
 
         {certificateUrl ? (
           <a
@@ -44,11 +59,11 @@ export default function ReviewPanel({
         ) : null}
 
         <div className="mt-auto flex gap-2 pt-5">
-          <Button variant="success" className="flex-1" onClick={onApprove}>
+          <Button variant="success" className="flex-1" onClick={onApprove} disabled={busy}>
             Approve
           </Button>
 
-          <Button variant="danger" className="flex-1" onClick={onReject}>
+          <Button variant="danger" className="flex-1" onClick={onReject} disabled={busy}>
             Reject
           </Button>
         </div>
