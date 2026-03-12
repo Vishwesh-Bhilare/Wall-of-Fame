@@ -9,17 +9,35 @@ import type { Achievement } from "@/types/achievement";
 export default function HomePage() {
   const [achievements, setAchievements] = useState<Achievement[]>([]);
   const [loading, setLoading] = useState(true);
+  const [search, setSearch] = useState("");
+  const [sortBy, setSortBy] = useState<"latest" | "oldest" | "title">("latest");
 
   useEffect(() => {
     const fetchVerifiedAchievements = async () => {
       setLoading(true);
-      const { data } = await getPublicApprovedAchievements(60);
+      const { data } = await getPublicApprovedAchievements(200);
       setAchievements(data || []);
       setLoading(false);
     };
 
     fetchVerifiedAchievements();
   }, []);
+
+  const filteredAchievements = useMemo(() => {
+    const query = search.trim().toLowerCase();
+    const next = achievements.filter((a) => {
+      if (!query) return true;
+      return [a.title, a.type, a.description || "", a.rank || ""].join(" ").toLowerCase().includes(query);
+    });
+
+    return next.sort((a, b) => {
+      if (sortBy === "title") return a.title.localeCompare(b.title);
+
+      const tA = new Date(a.created_at || 0).getTime();
+      const tB = new Date(b.created_at || 0).getTime();
+      return sortBy === "latest" ? tB - tA : tA - tB;
+    });
+  }, [achievements, search, sortBy]);
 
   const stats = useMemo(
     () => ({
@@ -101,15 +119,33 @@ export default function HomePage() {
           </Link>
         </div>
 
+        <div className="mb-4 grid gap-3 md:grid-cols-[1fr_200px]">
+          <input
+            type="text"
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            placeholder="Search by title, type, description, rank..."
+            className="w-full rounded-xl border border-gray-200 bg-white px-4 py-3 text-sm text-gray-900 focus:border-red-600 focus:outline-none focus:ring-2 focus:ring-red-100"
+          />
+
+          <select
+            value={sortBy}
+            onChange={(e) => setSortBy(e.target.value as "latest" | "oldest" | "title")}
+            className="w-full rounded-xl border border-gray-200 bg-white px-4 py-3 text-sm text-gray-900 focus:border-red-600 focus:outline-none focus:ring-2 focus:ring-red-100"
+          >
+            <option value="latest">Sort: Latest</option>
+            <option value="oldest">Sort: Oldest</option>
+            <option value="title">Sort: Title A-Z</option>
+          </select>
+        </div>
+
         {loading ? (
           <div className="brand-card p-8 text-center text-gray-500">Loading verified achievements...</div>
-        ) : achievements.length === 0 ? (
-          <div className="brand-card p-8 text-center text-gray-500">
-            No verified posts yet. Once admins approve submissions, they will appear here.
-          </div>
+        ) : filteredAchievements.length === 0 ? (
+          <div className="brand-card p-8 text-center text-gray-500">No matching verified posts found.</div>
         ) : (
           <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-            {achievements.map((item) => (
+            {filteredAchievements.map((item) => (
               <AchievementCard
                 key={item.id}
                 id={item.id}
@@ -120,6 +156,11 @@ export default function HomePage() {
                 description={item.description}
                 createdAt={item.created_at}
                 ctaLabel="View details"
+                certificateUrl={
+                  item.certificate
+                    ? `${process.env.NEXT_PUBLIC_SUPABASE_URL}/storage/v1/object/public/certificates/${item.certificate}`
+                    : undefined
+                }
               />
             ))}
           </div>

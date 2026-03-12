@@ -30,7 +30,7 @@ export async function createAchievement(payload: CreateAchievementInput) {
 export async function getAchievementById(id: string) {
   const { data, error } = await supabase
     .from("achievements")
-    .select("*,profiles(name,department,year)")
+    .select("*,profiles(name,department,year,email),verifier_profile:profiles!achievements_verified_by_fkey(name,email)")
     .eq("id", id)
     .single();
 
@@ -40,7 +40,7 @@ export async function getAchievementById(id: string) {
 export async function getPublicApprovedAchievements(limit = 60) {
   const { data, error } = await supabase
     .from("achievements")
-    .select("id,title,type,status,description,rank,created_at")
+    .select("id,title,type,status,description,rank,created_at,certificate")
     .eq("status", "approved")
     .order("created_at", { ascending: false })
     .limit(limit);

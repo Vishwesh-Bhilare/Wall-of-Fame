@@ -7,6 +7,7 @@ import { supabase } from "@/lib/supabaseClient";
 import { formatDate } from "@/lib/helpers";
 import { getAchievementById } from "@/services/achievementService";
 import type { Achievement } from "@/types/achievement";
+import MediaPreview from "@/components/achievements/MediaPreview";
 
 const statusStyles = {
   approved: "bg-emerald-100 text-emerald-700",
@@ -137,16 +138,7 @@ export default function AchievementDetailPage() {
             <p className="mt-2 text-sm text-gray-700">{achievement.description || "No description provided."}</p>
           </div>
 
-          {certificateUrl && (
-            <a
-              href={certificateUrl}
-              target="_blank"
-              rel="noreferrer"
-              className="mt-5 inline-flex rounded-lg bg-red-50 px-4 py-2 text-sm font-semibold text-red-700 hover:bg-red-100"
-            >
-              View certificate
-            </a>
-          )}
+          {certificateUrl ? <MediaPreview url={certificateUrl} /> : null}
         </div>
       </div>
     </div>
