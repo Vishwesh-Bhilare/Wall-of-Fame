@@ -6,7 +6,8 @@ export async function getAchievements(userId: string) {
     .from("achievements")
     .select("*")
     .eq("user_id", userId)
-    .order("created_at", { ascending: false });
+    .order("created_at", { ascending: false })
+    .order("id", { ascending: false });
 
   return { data: (data as Achievement[]) || [], error };
 }
@@ -37,12 +38,13 @@ export async function getAchievementById(id: string) {
   return { data: (data as Achievement | null) || null, error };
 }
 
-export async function getPublicApprovedAchievements(limit = 60) {
+export async function getPublicApprovedAchievements(limit = 1000) {
   const { data, error } = await supabase
     .from("achievements")
     .select("id,title,type,status,description,rank,created_at,certificate,academic_year,accomplishment_date,submitter_email")
     .eq("status", "approved")
     .order("created_at", { ascending: false })
+    .order("id", { ascending: false })
     .limit(limit);
 
   return { data: (data as Achievement[]) || [], error };
