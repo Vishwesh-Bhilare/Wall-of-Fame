@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import { supabase } from "@/lib/supabaseClient";
+import { escapeForIlike } from "@/lib/helpers";
 
 type Achievement = {
   id: string;
@@ -18,27 +19,59 @@ export default function SearchPage() {
   const [loading, setLoading] = useState(false);
 
   useEffect(() => {
-    const runSearch = async () => {
-      if (!query.trim()) {
-        setResults([]);
+    let channel: ReturnType<typeof supabase.channel> | null = null;
+    let intervalId: ReturnType<typeof setInterval> | null = null;
+    let isMounted = true;
+
+    const runSearch = async (searchText: string, showLoader = true) => {
+      const trimmed = searchText.trim();
+      if (!trimmed) {
+        if (isMounted) {
+          setResults([]);
+          setLoading(false);
+        }
         return;
       }
 
-      setLoading(true);
+      if (showLoader) setLoading(true);
+
+      const escaped = escapeForIlike(trimmed);
+      const filter = `title.ilike.%${escaped}%,type.ilike.%${escaped}%,description.ilike.%${escaped}%`;
 
       const { data } = await supabase
         .from("achievements")
         .select("id,title,type,description,status")
         .eq("status", "approved")
-        .or(`title.ilike.%${query}%,type.ilike.%${query}%,description.ilike.%${query}%`)
+        .or(filter)
         .limit(30);
 
+      if (!isMounted) return;
+
       setResults((data as Achievement[]) || []);
-      setLoading(false);
+      if (showLoader) setLoading(false);
     };
 
-    const timer = setTimeout(runSearch, 350);
-    return () => clearTimeout(timer);
+    const timer = setTimeout(() => runSearch(query, true), 350);
+
+    if (query.trim()) {
+      channel = supabase
+        .channel("search-achievements-live")
+        .on("postgres_changes", { event: "*", schema: "public", table: "achievements" }, () => {
+          runSearch(query, false);
+        })
+        .subscribe();
+
+      intervalId = setInterval(() => {
+        runSearch(query, false);
+      }, 10000);
+    }
+
+    return () => {
+      isMounted = false;
+      clearTimeout(timer);
+      if (intervalId) clearInterval(intervalId);
+      if (channel) supabase.removeChannel(channel);
+    };
   }, [query]);
 
   return (

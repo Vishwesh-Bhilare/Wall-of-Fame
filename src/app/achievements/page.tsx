@@ -14,9 +14,33 @@ export default function AchievementsPage() {
   const [sortBy, setSortBy] = useState<"latest" | "oldest" | "status">("latest");
 
   useEffect(() => {
-    const fetchAchievements = async () => {
-      setLoading(true);
+    let channel: ReturnType<typeof supabase.channel> | null = null;
+    let intervalId: ReturnType<typeof setInterval> | null = null;
+    let isMounted = true;
 
+    const fetchAchievements = async (userId?: string, showLoader = false) => {
+      if (showLoader) setLoading(true);
+
+      let activeUserId = userId;
+      if (!activeUserId) {
+        const { data: userData } = await supabase.auth.getUser();
+        activeUserId = userData?.user?.id;
+      }
+
+      if (!activeUserId) {
+        if (showLoader && isMounted) setLoading(false);
+        return;
+      }
+
+      const { data } = await getAchievements(activeUserId);
+
+      if (!isMounted) return;
+
+      setAchievements(data || []);
+      if (showLoader) setLoading(false);
+    };
+
+    const init = async () => {
       const { data: userData } = await supabase.auth.getUser();
       const user = userData?.user;
 
@@ -25,13 +49,31 @@ export default function AchievementsPage() {
         return;
       }
 
-      const { data } = await getAchievements(user.id);
+      await fetchAchievements(user.id, true);
 
-      setAchievements(data || []);
-      setLoading(false);
+      channel = supabase
+        .channel(`my-achievements-${user.id}`)
+        .on(
+          "postgres_changes",
+          { event: "*", schema: "public", table: "achievements", filter: `user_id=eq.${user.id}` },
+          () => fetchAchievements(user.id),
+        )
+        .subscribe();
+
+      intervalId = setInterval(() => {
+        fetchAchievements(user.id);
+      }, 10000);
     };
 
-    fetchAchievements();
+    init();
+
+    return () => {
+      isMounted = false;
+      if (intervalId) clearInterval(intervalId);
+      if (channel) {
+        supabase.removeChannel(channel);
+      }
+    };
   }, []);
 
   const filteredAchievements = useMemo(() => {
