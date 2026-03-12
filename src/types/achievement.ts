@@ -11,6 +11,7 @@ export type AchievementType =
 export interface Achievement {
   id: string;
   user_id?: string;
+  verified_by?: string | null;
 
   title: string;
   type: AchievementType;
@@ -42,6 +43,12 @@ export interface Achievement {
     name?: string | null;
     department?: string | null;
     year?: number | null;
+    email?: string | null;
+  } | null;
+
+  verifier_profile?: {
+    email?: string | null;
+    name?: string | null;
   } | null;
 }
 

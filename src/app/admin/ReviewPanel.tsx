@@ -2,6 +2,7 @@ import Button from "@/components/ui/Button";
 import Card from "@/components/ui/Card";
 import StatusBadge from "./StatusBadge";
 import { formatDate } from "@/lib/helpers";
+import MediaPreview from "@/components/achievements/MediaPreview";
 
 type Props = {
   title: string;
@@ -47,26 +48,19 @@ export default function ReviewPanel({
 
         {submittedAt ? <p className="mt-2 text-xs text-gray-500">Submitted on {formatDate(submittedAt)}</p> : null}
 
-        {certificateUrl ? (
-          <a
-            href={certificateUrl}
-            target="_blank"
-            rel="noreferrer"
-            className="mt-3 inline-flex w-fit rounded-lg bg-red-50 px-3 py-1.5 text-xs font-semibold text-red-700 hover:bg-red-100"
-          >
-            View proof
-          </a>
-        ) : null}
+        <MediaPreview url={certificateUrl} compact />
 
-        <div className="mt-auto flex gap-2 pt-5">
-          <Button variant="success" className="flex-1" onClick={onApprove} disabled={busy}>
-            Approve
-          </Button>
+        {(onApprove || onReject) && (
+          <div className="mt-auto flex gap-2 pt-5">
+            <Button variant="success" className="flex-1" onClick={onApprove} disabled={busy || !onApprove}>
+              Approve
+            </Button>
 
-          <Button variant="danger" className="flex-1" onClick={onReject} disabled={busy}>
-            Reject
-          </Button>
-        </div>
+            <Button variant="danger" className="flex-1" onClick={onReject} disabled={busy || !onReject}>
+              Reject
+            </Button>
+          </div>
+        )}
       </div>
     </Card>
   );
