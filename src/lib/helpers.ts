@@ -28,3 +28,8 @@ export function generateStatusColor(status: string) {
       return "gray";
   }
 }
+
+
+export function escapeForIlike(query: string) {
+  return query.replace(/[%_,]/g, (char) => `\\${char}`);
+}
