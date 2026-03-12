@@ -14,6 +14,9 @@ type Achievement = {
   description?: string;
   rank?: string;
   submitted_at?: string;
+  academic_year?: string | null;
+  accomplishment_date?: string | null;
+  submitter_email?: string | null;
   certificate?: string;
   verified_by?: string | null;
   profiles?: { name?: string; email?: string } | null;
@@ -35,7 +38,7 @@ export default function AdminDashboard() {
 
     const { data, error } = await supabase
       .from("achievements")
-      .select("id,title,type,status,description,rank,submitted_at,certificate,verified_by,profiles(name,email),verifier_profile:profiles!achievements_verified_by_fkey(name,email)")
+      .select("id,title,type,status,description,rank,submitted_at,academic_year,accomplishment_date,submitter_email,certificate,verified_by,profiles(name,email),verifier_profile:profiles!achievements_verified_by_fkey(name,email)")
       .order("created_at", { ascending: false });
 
     if (error) {
@@ -132,7 +135,7 @@ export default function AdminDashboard() {
     const query = search.trim().toLowerCase();
     const next = achievements.filter((a) => {
       if (!query) return true;
-      return [a.title, a.type, a.status, a.description || "", a.profiles?.name || "", a.profiles?.email || "", a.verifier_profile?.email || ""]
+      return [a.title, a.type, a.status, a.description || "", a.profiles?.name || "", a.profiles?.email || "", a.submitter_email || "", a.academic_year || "", a.accomplishment_date || "", a.verifier_profile?.email || ""]
         .join(" ")
         .toLowerCase()
         .includes(query);

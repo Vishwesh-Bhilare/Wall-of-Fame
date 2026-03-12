@@ -11,6 +11,9 @@ type Props = {
   status: AchievementStatus;
   description?: string | null;
   rank?: string | null;
+  academicYear?: string | null;
+  accomplishmentDate?: string | null;
+  submitterEmail?: string | null;
   createdAt?: string;
   ctaLabel?: string;
   certificateUrl?: string;
@@ -29,6 +32,9 @@ export default function AchievementCard({
   status,
   description,
   rank,
+  academicYear,
+  accomplishmentDate,
+  submitterEmail,
   createdAt,
   ctaLabel = "View details",
   certificateUrl,
@@ -49,6 +55,14 @@ export default function AchievementCard({
         {rank ? <p className="mt-1 text-sm text-gray-600">Rank/ID: {rank}</p> : null}
 
         {description ? <p className="mt-2 line-clamp-3 text-sm text-gray-600">{description}</p> : null}
+
+        {(academicYear || accomplishmentDate || submitterEmail) && (
+          <div className="mt-2 space-y-1 text-xs text-gray-600">
+            {academicYear ? <p>Academic Year: {academicYear}</p> : null}
+            {accomplishmentDate ? <p>Accomplished on: {formatDate(accomplishmentDate)}</p> : null}
+            {submitterEmail ? <p>Posted by: {submitterEmail}</p> : null}
+          </div>
+        )}
 
         <MediaPreview url={certificateUrl} compact />
 

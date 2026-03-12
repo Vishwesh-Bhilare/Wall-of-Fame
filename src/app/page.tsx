@@ -27,7 +27,7 @@ export default function HomePage() {
     const query = search.trim().toLowerCase();
     const next = achievements.filter((a) => {
       if (!query) return true;
-      return [a.title, a.type, a.description || "", a.rank || ""].join(" ").toLowerCase().includes(query);
+      return [a.title, a.type, a.description || "", a.rank || "", a.academic_year || "", a.submitter_email || ""].join(" ").toLowerCase().includes(query);
     });
 
     return next.sort((a, b) => {
@@ -124,7 +124,7 @@ export default function HomePage() {
             type="text"
             value={search}
             onChange={(e) => setSearch(e.target.value)}
-            placeholder="Search by title, type, description, rank..."
+            placeholder="Search by title, type, description, rank, year, email..."
             className="w-full rounded-xl border border-gray-200 bg-white px-4 py-3 text-sm text-gray-900 focus:border-red-600 focus:outline-none focus:ring-2 focus:ring-red-100"
           />
 
@@ -154,6 +154,9 @@ export default function HomePage() {
                 status={item.status}
                 rank={item.rank}
                 description={item.description}
+                academicYear={item.academic_year}
+                accomplishmentDate={item.accomplishment_date}
+                submitterEmail={item.submitter_email}
                 createdAt={item.created_at}
                 ctaLabel="View details"
                 certificateUrl={
