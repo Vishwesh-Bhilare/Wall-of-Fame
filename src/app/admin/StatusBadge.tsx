@@ -10,10 +10,15 @@ const statusStyleMap: Record<string, string> = {
 
 export default function StatusBadge({ status }: Props) {
   const normalizedStatus = status?.toLowerCase() || "pending";
-  const style = statusStyleMap[normalizedStatus] || "bg-gray-100 text-gray-700 border border-gray-200";
+
+  const style =
+    statusStyleMap[normalizedStatus] ||
+    "bg-gray-100 text-gray-700 border border-gray-200";
 
   return (
-    <span className={`inline-flex rounded-full px-3 py-1 text-xs font-semibold capitalize ${style}`}>
+    <span
+      className={`inline-flex rounded-full px-3 py-1 text-xs font-semibold capitalize ${style}`}
+    >
       {normalizedStatus}
     </span>
   );

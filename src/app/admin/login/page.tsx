@@ -1,121 +1,172 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { supabase } from "@/lib/supabaseClient";
-import { useRouter } from "next/navigation";
-import Link from "next/link";
+import Card from "@/components/ui/Card";
+import Button from "@/components/ui/Button";
+import StatsCard from "@/components/dashboard/StatsCard";
 
-export default function AdminLogin() {
-  const router = useRouter();
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
-  const [loading, setLoading] = useState(false);
+type ReportType = "monthly" | "yearly" | "achievements" | "students";
 
-  const login = async () => {
-    if (!email || !password) {
-      alert("Please enter admin email and password");
-      return;
-    }
+type AchievementRow = {
+  id: string;
+  status: "approved" | "pending" | "rejected";
+  type: string;
+};
 
-    setLoading(true);
+export default function AdminReportsPage() {
+  const [reportType, setReportType] = useState<ReportType>("monthly");
+  const [rows, setRows] = useState<AchievementRow[]>([]);
+  const [loading, setLoading] = useState(true);
 
-    const { data, error } = await supabase.auth.signInWithPassword({ email, password });
+  useEffect(() => {
+    const loadRows = async () => {
+      setLoading(true);
 
-    if (error) {
-      alert(error.message);
+      const { data, error } = await supabase
+        .from("achievements")
+        .select("id,status,type");
+
+      if (!error && data) setRows(data as AchievementRow[]);
+
       setLoading(false);
-      return;
-    }
+    };
 
-    const user = data.user;
-    const { data: profile, error: roleError } = await supabase
-      .from("users")
-      .select("role")
-      .eq("id", user.id)
-      .single();
+    loadRows();
+  }, []);
 
-    if (roleError) {
-      alert("Error checking admin role");
-      setLoading(false);
-      return;
-    }
+  const stats = useMemo(() => {
+    const total = rows.length;
+    const pending = rows.filter((r) => r.status === "pending").length;
+    const approved = rows.filter((r) => r.status === "approved").length;
+    const rejected = rows.filter((r) => r.status === "rejected").length;
 
-    if (profile.role !== "admin" && profile.role !== "head_admin") {
-      alert("You are not authorized as admin");
-      setLoading(false);
-      return;
-    }
+    return { total, pending, approved, rejected };
+  }, [rows]);
 
-    router.push("/admin/dashboard");
+  const categoryBreakdown = useMemo(() => {
+    const map = new Map<string, number>();
+
+    rows.forEach((r) => {
+      map.set(r.type, (map.get(r.type) || 0) + 1);
+    });
+
+    return Array.from(map.entries()).sort((a, b) => b[1] - a[1]);
+  }, [rows]);
+
+  const generateReport = () => {
+    alert(`Generating ${reportType} report...`);
+  };
+
+  const exportReport = (format: "CSV" | "PDF" | "Excel") => {
+    alert(`Exporting ${reportType} report as ${format}...`);
   };
 
   return (
-    <div className="min-h-screen px-4 py-8 md:px-8">
-      <div className="mx-auto grid w-full max-w-6xl overflow-hidden rounded-3xl border border-red-100 bg-white shadow-[0_30px_80px_rgba(177,18,38,0.16)] md:grid-cols-[1fr_0.95fr]">
-        <section className="relative min-h-[300px] md:min-h-[620px]">
-          <img
-            src="https://i.ytimg.com/vi/96KWizV6gu4/maxresdefault.jpg"
-            alt="MMCOE"
-            className="h-full w-full object-cover"
-          />
-          <div className="absolute inset-0 bg-gradient-to-br from-[#300409]/85 via-[#5d0814]/80 to-[#8f1225]/75" />
-          <div className="absolute inset-0 flex flex-col justify-end p-8 text-white md:p-10">
-            <span className="mb-4 inline-flex w-fit rounded-full border border-white/30 bg-white/10 px-3 py-1 text-xs font-semibold uppercase tracking-wider">
-              Admin Review Console
-            </span>
-            <h1 className="text-3xl font-black leading-tight md:text-4xl">Secure access for verification team</h1>
-            <p className="mt-2 max-w-md text-sm text-red-50 md:text-base">
-              Validate submissions, maintain quality, and keep the Wall of Fame trusted and authentic.
-            </p>
-          </div>
-        </section>
+    <div className="min-h-screen px-4 py-6 md:px-8 md:py-8">
+      <div className="mx-auto w-full max-w-7xl space-y-6">
 
-        <section className="flex items-center justify-center bg-gradient-to-b from-white to-red-50/60 p-6 md:p-10">
-          <div className="w-full max-w-md rounded-2xl border border-red-100 bg-white p-7 shadow-lg md:p-8">
-            <h2 className="text-2xl font-extrabold text-gray-900">Admin Login</h2>
-            <p className="mt-1 text-sm text-gray-600">Authorized admins only.</p>
+        <div>
+          <p className="text-xs font-semibold uppercase tracking-[0.15em] text-red-700">
+            Admin Analytics
+          </p>
+          <h1 className="text-2xl font-black text-gray-900 md:text-3xl">
+            Reports Dashboard
+          </h1>
+          <p className="mt-1 text-sm text-gray-600">
+            Generate summary reports and review achievement trends.
+          </p>
+        </div>
 
-            <div className="mt-6 space-y-4">
-              <div>
-                <label htmlFor="admin-email" className="brand-label">
-                  Admin Email
-                </label>
-                <input
-                  id="admin-email"
-                  type="email"
-                  className="brand-input"
-                  placeholder="admin@mmcoe.edu.in"
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                />
-              </div>
+        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+          <StatsCard title="Total Achievements" value={stats.total} color="text-gray-900" />
+          <StatsCard title="Pending Review" value={stats.pending} color="text-amber-700" />
+          <StatsCard title="Approved" value={stats.approved} color="text-emerald-700" />
+          <StatsCard title="Rejected" value={stats.rejected} color="text-rose-700" />
+        </div>
 
-              <div>
-                <label htmlFor="admin-password" className="brand-label">
-                  Password
-                </label>
-                <input
-                  id="admin-password"
-                  type="password"
-                  className="brand-input"
-                  placeholder="••••••••"
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                />
-              </div>
+        <Card>
+          <h2 className="text-lg font-bold text-gray-900">Select Report Type</h2>
 
-              <button onClick={login} disabled={loading} className="brand-button w-full disabled:opacity-60">
-                {loading ? "Checking access..." : "Login as Admin"}
+          <div className="mt-4 grid gap-3 md:grid-cols-4">
+            {[
+              { id: "monthly", label: "Monthly Report" },
+              { id: "yearly", label: "Yearly Report" },
+              { id: "achievements", label: "Achievements" },
+              { id: "students", label: "Student Activity" },
+            ].map((item) => (
+              <button
+                key={item.id}
+                onClick={() => setReportType(item.id as ReportType)}
+                className={`rounded-xl border p-4 text-left text-sm font-semibold transition ${
+                  reportType === item.id
+                    ? "border-red-300 bg-red-50 text-red-700"
+                    : "border-gray-200 bg-white text-gray-700 hover:border-red-200 hover:bg-red-50/50"
+                }`}
+              >
+                {item.label}
               </button>
+            ))}
+          </div>
+        </Card>
+
+        <div className="grid gap-4 lg:grid-cols-[1.2fr_0.8fr]">
+
+          <Card>
+            <div className="flex items-center justify-between">
+              <h2 className="text-lg font-bold text-gray-900">Generate Report</h2>
+              <Button onClick={generateReport}>Generate</Button>
             </div>
 
-            <div className="mt-5 text-sm">
-              <Link href="/" className="text-gray-600 hover:text-red-700 hover:underline">
-                Back to Wall of Fame
-              </Link>
+            <p className="mt-2 text-sm text-gray-600">
+              Selected type:
+              <span className="font-semibold capitalize text-red-700">
+                {" "}{reportType}
+              </span>
+            </p>
+
+            <div className="mt-5 flex flex-wrap gap-2">
+              <Button variant="secondary" onClick={() => exportReport("CSV")}>
+                Export CSV
+              </Button>
+              <Button variant="secondary" onClick={() => exportReport("PDF")}>
+                Export PDF
+              </Button>
+              <Button variant="secondary" onClick={() => exportReport("Excel")}>
+                Export Excel
+              </Button>
             </div>
-          </div>
-        </section>
+          </Card>
+
+          <Card>
+            <h2 className="text-lg font-bold text-gray-900">
+              Category Distribution
+            </h2>
+
+            {loading ? (
+              <p className="mt-4 text-sm text-gray-500">
+                Loading analytics...
+              </p>
+            ) : categoryBreakdown.length === 0 ? (
+              <p className="mt-4 text-sm text-gray-500">
+                No achievement data available.
+              </p>
+            ) : (
+              <ul className="mt-4 space-y-2">
+                {categoryBreakdown.slice(0, 6).map(([type, count]) => (
+                  <li
+                    key={type}
+                    className="flex items-center justify-between rounded-lg bg-red-50/50 px-3 py-2 text-sm"
+                  >
+                    <span className="font-medium text-gray-700">{type}</span>
+                    <span className="font-bold text-red-700">{count}</span>
+                  </li>
+                ))}
+              </ul>
+            )}
+          </Card>
+
+        </div>
       </div>
     </div>
   );

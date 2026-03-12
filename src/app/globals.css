@@ -52,6 +52,7 @@ select {
 }
 
 @layer components {
+
   .brand-card {
     @apply rounded-2xl border border-white/60 bg-white/90 backdrop-blur-sm;
     box-shadow: var(--shadow);
@@ -99,4 +100,5 @@ select {
     color: var(--brand-red-dark);
     background: var(--brand-red-soft);
   }
+
 }

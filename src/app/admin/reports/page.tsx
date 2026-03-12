@@ -22,8 +22,13 @@ export default function AdminReportsPage() {
   useEffect(() => {
     const loadRows = async () => {
       setLoading(true);
-      const { data, error } = await supabase.from("achievements").select("id,status,type");
+
+      const { data, error } = await supabase
+        .from("achievements")
+        .select("id,status,type");
+
       if (!error && data) setRows(data as AchievementRow[]);
+
       setLoading(false);
     };
 
@@ -35,12 +40,17 @@ export default function AdminReportsPage() {
     const pending = rows.filter((r) => r.status === "pending").length;
     const approved = rows.filter((r) => r.status === "approved").length;
     const rejected = rows.filter((r) => r.status === "rejected").length;
+
     return { total, pending, approved, rejected };
   }, [rows]);
 
   const categoryBreakdown = useMemo(() => {
     const map = new Map<string, number>();
-    rows.forEach((r) => map.set(r.type, (map.get(r.type) || 0) + 1));
+
+    rows.forEach((r) => {
+      map.set(r.type, (map.get(r.type) || 0) + 1);
+    });
+
     return Array.from(map.entries()).sort((a, b) => b[1] - a[1]);
   }, [rows]);
 
@@ -55,10 +65,17 @@ export default function AdminReportsPage() {
   return (
     <div className="min-h-screen px-4 py-6 md:px-8 md:py-8">
       <div className="mx-auto w-full max-w-7xl space-y-6">
+
         <div>
-          <p className="text-xs font-semibold uppercase tracking-[0.15em] text-red-700">Admin Analytics</p>
-          <h1 className="text-2xl font-black text-gray-900 md:text-3xl">Reports Dashboard</h1>
-          <p className="mt-1 text-sm text-gray-600">Generate summary reports and review achievement trends.</p>
+          <p className="text-xs font-semibold uppercase tracking-[0.15em] text-red-700">
+            Admin Analytics
+          </p>
+          <h1 className="text-2xl font-black text-gray-900 md:text-3xl">
+            Reports Dashboard
+          </h1>
+          <p className="mt-1 text-sm text-gray-600">
+            Generate summary reports and review achievement trends.
+          </p>
         </div>
 
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
@@ -70,6 +87,7 @@ export default function AdminReportsPage() {
 
         <Card>
           <h2 className="text-lg font-bold text-gray-900">Select Report Type</h2>
+
           <div className="mt-4 grid gap-3 md:grid-cols-4">
             {[
               { id: "monthly", label: "Monthly Report" },
@@ -93,32 +111,53 @@ export default function AdminReportsPage() {
         </Card>
 
         <div className="grid gap-4 lg:grid-cols-[1.2fr_0.8fr]">
+
           <Card>
             <div className="flex items-center justify-between">
               <h2 className="text-lg font-bold text-gray-900">Generate Report</h2>
               <Button onClick={generateReport}>Generate</Button>
             </div>
+
             <p className="mt-2 text-sm text-gray-600">
-              Selected type: <span className="font-semibold capitalize text-red-700">{reportType}</span>
+              Selected type:
+              <span className="font-semibold capitalize text-red-700">
+                {" "}{reportType}
+              </span>
             </p>
 
             <div className="mt-5 flex flex-wrap gap-2">
-              <Button variant="secondary" onClick={() => exportReport("CSV")}>Export CSV</Button>
-              <Button variant="secondary" onClick={() => exportReport("PDF")}>Export PDF</Button>
-              <Button variant="secondary" onClick={() => exportReport("Excel")}>Export Excel</Button>
+              <Button variant="secondary" onClick={() => exportReport("CSV")}>
+                Export CSV
+              </Button>
+              <Button variant="secondary" onClick={() => exportReport("PDF")}>
+                Export PDF
+              </Button>
+              <Button variant="secondary" onClick={() => exportReport("Excel")}>
+                Export Excel
+              </Button>
             </div>
           </Card>
 
           <Card>
-            <h2 className="text-lg font-bold text-gray-900">Category Distribution</h2>
+            <h2 className="text-lg font-bold text-gray-900">
+              Category Distribution
+            </h2>
+
             {loading ? (
-              <p className="mt-4 text-sm text-gray-500">Loading analytics...</p>
+              <p className="mt-4 text-sm text-gray-500">
+                Loading analytics...
+              </p>
             ) : categoryBreakdown.length === 0 ? (
-              <p className="mt-4 text-sm text-gray-500">No achievement data available.</p>
+              <p className="mt-4 text-sm text-gray-500">
+                No achievement data available.
+              </p>
             ) : (
               <ul className="mt-4 space-y-2">
                 {categoryBreakdown.slice(0, 6).map(([type, count]) => (
-                  <li key={type} className="flex items-center justify-between rounded-lg bg-red-50/50 px-3 py-2 text-sm">
+                  <li
+                    key={type}
+                    className="flex items-center justify-between rounded-lg bg-red-50/50 px-3 py-2 text-sm"
+                  >
                     <span className="font-medium text-gray-700">{type}</span>
                     <span className="font-bold text-red-700">{count}</span>
                   </li>
@@ -126,6 +165,7 @@ export default function AdminReportsPage() {
               </ul>
             )}
           </Card>
+
         </div>
       </div>
     </div>

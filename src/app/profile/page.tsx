@@ -17,6 +17,7 @@ export default function ProfilePage() {
     const loadProfile = async () => {
       const { data: authData } = await supabase.auth.getUser();
       const user = authData?.user;
+
       if (!user) return;
 
       const { data: userProfile } = await supabase
@@ -30,7 +31,14 @@ export default function ProfilePage() {
         .select("id", { count: "exact", head: true })
         .eq("user_id", user.id);
 
-      setProfile((userProfile as Profile) || { id: user.id, email: user.email || "", role: "student" });
+      setProfile(
+        (userProfile as Profile) || {
+          id: user.id,
+          email: user.email || "",
+          role: "student",
+        }
+      );
+
       setAchievementCount(count || 0);
     };
 
@@ -40,30 +48,50 @@ export default function ProfilePage() {
   return (
     <div className="min-h-screen px-4 py-6 md:px-8 md:py-8">
       <div className="mx-auto w-full max-w-5xl">
-        <h1 className="text-2xl font-black text-gray-900 md:text-3xl">My Profile</h1>
+        <h1 className="text-2xl font-black text-gray-900 md:text-3xl">
+          My Profile
+        </h1>
 
         <div className="mt-5 grid gap-4 md:grid-cols-[1.4fr_0.8fr]">
           <div className="brand-card p-6 md:p-8">
-            <p className="text-xs font-semibold uppercase tracking-[0.15em] text-red-700">Identity</p>
-            <h2 className="mt-1 text-xl font-bold text-gray-900">Student Account</h2>
+            <p className="text-xs font-semibold uppercase tracking-[0.15em] text-red-700">
+              Identity
+            </p>
+
+            <h2 className="mt-1 text-xl font-bold text-gray-900">
+              Student Account
+            </h2>
 
             <div className="mt-5 space-y-3 text-sm text-gray-700">
               <p>
-                <span className="font-semibold text-gray-900">Email:</span> {profile?.email || "Not available"}
+                <span className="font-semibold text-gray-900">Email:</span>{" "}
+                {profile?.email || "Not available"}
               </p>
+
               <p>
-                <span className="font-semibold text-gray-900">Role:</span> {profile?.role || "student"}
+                <span className="font-semibold text-gray-900">Role:</span>{" "}
+                {profile?.role || "student"}
               </p>
+
               <p>
-                <span className="font-semibold text-gray-900">Profile ID:</span> {profile?.id || "-"}
+                <span className="font-semibold text-gray-900">Profile ID:</span>{" "}
+                {profile?.id || "-"}
               </p>
             </div>
           </div>
 
           <div className="brand-card p-6 md:p-8">
-            <p className="text-xs font-semibold uppercase tracking-[0.15em] text-red-700">Snapshot</p>
-            <p className="mt-2 text-4xl font-black text-gray-900">{achievementCount}</p>
-            <p className="mt-1 text-sm text-gray-600">Total achievements submitted</p>
+            <p className="text-xs font-semibold uppercase tracking-[0.15em] text-red-700">
+              Snapshot
+            </p>
+
+            <p className="mt-2 text-4xl font-black text-gray-900">
+              {achievementCount}
+            </p>
+
+            <p className="mt-1 text-sm text-gray-600">
+              Total achievements submitted
+            </p>
           </div>
         </div>
       </div>

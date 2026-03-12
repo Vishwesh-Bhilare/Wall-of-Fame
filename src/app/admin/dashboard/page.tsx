@@ -20,6 +20,7 @@ export default function AdminDashboard() {
 
   const fetchAchievements = async () => {
     setLoading(true);
+
     const { data, error } = await supabase
       .from("achievements")
       .select("id,title,type,status,certificate,profiles(name)")
@@ -45,11 +46,21 @@ export default function AdminDashboard() {
     const approved = achievements.filter((a) => a.status === "approved").length;
     const rejected = achievements.filter((a) => a.status === "rejected").length;
     const pending = achievements.filter((a) => a.status === "pending").length;
-    return { total: achievements.length, approved, pending, rejected };
+
+    return {
+      total: achievements.length,
+      approved,
+      pending,
+      rejected,
+    };
   }, [achievements]);
 
   const updateStatus = async (id: string, status: "approved" | "rejected") => {
-    const { error } = await supabase.from("achievements").update({ status }).eq("id", id);
+    const { error } = await supabase
+      .from("achievements")
+      .update({ status })
+      .eq("id", id);
+
     if (error) {
       alert(error.message);
       return;
@@ -62,9 +73,17 @@ export default function AdminDashboard() {
     <div className="min-h-screen px-4 py-6 md:px-8 md:py-8">
       <div className="mx-auto w-full max-w-7xl">
         <div className="mb-6">
-          <p className="text-xs font-semibold uppercase tracking-[0.15em] text-red-700">Admin</p>
-          <h1 className="text-2xl font-black text-gray-900 md:text-3xl">Review & Verification Dashboard</h1>
-          <p className="mt-1 text-sm text-gray-600">Approve or reject student submissions before publishing to the Wall of Fame.</p>
+          <p className="text-xs font-semibold uppercase tracking-[0.15em] text-red-700">
+            Admin
+          </p>
+
+          <h1 className="text-2xl font-black text-gray-900 md:text-3xl">
+            Review & Verification Dashboard
+          </h1>
+
+          <p className="mt-1 text-sm text-gray-600">
+            Approve or reject student submissions before publishing to the Wall of Fame.
+          </p>
         </div>
 
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
@@ -75,12 +94,18 @@ export default function AdminDashboard() {
         </div>
 
         <div className="mt-7">
-          <h2 className="mb-3 text-xl font-bold text-gray-900">Pending Reviews</h2>
+          <h2 className="mb-3 text-xl font-bold text-gray-900">
+            Pending Reviews
+          </h2>
 
           {loading ? (
-            <div className="brand-card p-8 text-center text-gray-500">Loading submissions...</div>
+            <div className="brand-card p-8 text-center text-gray-500">
+              Loading submissions...
+            </div>
           ) : pendingItems.length === 0 ? (
-            <div className="brand-card p-8 text-center text-gray-500">No pending achievements. Great job!</div>
+            <div className="brand-card p-8 text-center text-gray-500">
+              No pending achievements. Great job!
+            </div>
           ) : (
             <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
               {pendingItems.map((a) => (

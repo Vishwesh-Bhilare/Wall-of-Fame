@@ -15,25 +15,45 @@ const statusStyleMap: Record<string, string> = {
   rejected: "bg-rose-100 text-rose-700 border border-rose-200",
 };
 
-export default function AchievementCard({ id, title, type, status, description }: Props) {
+export default function AchievementCard({
+  id,
+  title,
+  type,
+  status,
+  description,
+}: Props) {
   const normalizedStatus = status?.toLowerCase() || "pending";
 
   return (
     <Card className="h-full">
       <div className="flex h-full flex-col">
         <div className="mb-3 flex items-start justify-between gap-3">
-          <h3 className="line-clamp-2 text-lg font-bold text-gray-900">{title}</h3>
+          <h3 className="line-clamp-2 text-lg font-bold text-gray-900">
+            {title}
+          </h3>
+
           <span
-            className={`rounded-full px-2.5 py-1 text-xs font-semibold capitalize ${statusStyleMap[normalizedStatus] || "bg-gray-100 text-gray-700 border border-gray-200"}`}
+            className={`rounded-full px-2.5 py-1 text-xs font-semibold capitalize ${
+              statusStyleMap[normalizedStatus] ||
+              "bg-gray-100 text-gray-700 border border-gray-200"
+            }`}
           >
             {normalizedStatus}
           </span>
         </div>
 
         <p className="text-sm font-semibold text-red-700">{type}</p>
-        {description ? <p className="mt-2 line-clamp-3 text-sm text-gray-600">{description}</p> : null}
 
-        <Link href={`/achievements/${id}`} className="mt-4 text-sm font-semibold text-red-700 hover:underline">
+        {description && (
+          <p className="mt-2 line-clamp-3 text-sm text-gray-600">
+            {description}
+          </p>
+        )}
+
+        <Link
+          href={`/achievements/${id}`}
+          className="mt-4 text-sm font-semibold text-red-700 hover:underline"
+        >
           View details
         </Link>
       </div>

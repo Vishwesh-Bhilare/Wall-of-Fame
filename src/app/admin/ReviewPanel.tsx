@@ -47,6 +47,7 @@ export default function ReviewPanel({
           <Button variant="success" className="flex-1" onClick={onApprove}>
             Approve
           </Button>
+
           <Button variant="danger" className="flex-1" onClick={onReject}>
             Reject
           </Button>

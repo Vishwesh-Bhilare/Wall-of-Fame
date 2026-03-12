@@ -28,8 +28,8 @@ const getStatusChip = (status: string) =>
   status === "approved"
     ? "bg-emerald-100 text-emerald-700"
     : status === "rejected"
-      ? "bg-rose-100 text-rose-700"
-      : "bg-amber-100 text-amber-700";
+    ? "bg-rose-100 text-rose-700"
+    : "bg-amber-100 text-amber-700";
 
 export default function Home() {
   const [achievements, setAchievements] = useState<Achievement[]>([]);
@@ -38,6 +38,7 @@ export default function Home() {
   useEffect(() => {
     const fetchVerifiedAchievements = async () => {
       setLoading(true);
+
       const { data, error } = await supabase
         .from("achievements")
         .select("id,title,type,rank,description,certificate,status,created_at")
@@ -57,7 +58,7 @@ export default function Home() {
       total: achievements.length,
       categories: new Set(achievements.map((a) => a.type)).size,
     }),
-    [achievements],
+    [achievements]
   );
 
   return (
@@ -73,7 +74,9 @@ export default function Home() {
             <p className="text-xs font-semibold uppercase tracking-[0.15em] text-red-700">
               MMCOE
             </p>
-            <h1 className="text-lg font-extrabold text-gray-900">Wall of Fame</h1>
+            <h1 className="text-lg font-extrabold text-gray-900">
+              Wall of Fame
+            </h1>
           </div>
         </div>
 
@@ -99,14 +102,19 @@ export default function Home() {
               className="h-full w-full object-cover"
             />
             <div className="absolute inset-0 bg-gradient-to-r from-[#5e0712]/85 via-[#8c1022]/70 to-[#b11226]/65" />
+
             <div className="absolute inset-0 flex flex-col justify-end p-6 text-white md:p-8">
               <span className="brand-badge mb-3 w-fit border border-white/20 bg-white/15 text-white">
                 Verified showcase only
               </span>
-              <h2 className="text-2xl font-black md:text-4xl">Celebrating Excellence at MMCOE</h2>
+
+              <h2 className="text-2xl font-black md:text-4xl">
+                Celebrating Excellence at MMCOE
+              </h2>
+
               <p className="mt-2 max-w-3xl text-sm text-red-50 md:text-base">
-                This wall displays only admin-verified student achievements in academics,
-                innovation, research, sports, and extracurricular impact.
+                This wall displays only admin-verified student achievements in
+                academics, innovation, research, sports, and extracurricular impact.
               </p>
             </div>
           </div>
@@ -114,26 +122,40 @@ export default function Home() {
 
         <aside className="grid grid-cols-2 gap-3 md:grid-cols-1">
           <div className="brand-card p-4">
-            <p className="text-xs font-semibold uppercase tracking-wider text-red-700">Verified Posts</p>
-            <p className="mt-1 text-2xl font-black text-gray-900">{stats.total}</p>
+            <p className="text-xs font-semibold uppercase tracking-wider text-red-700">
+              Verified Posts
+            </p>
+            <p className="mt-1 text-2xl font-black text-gray-900">
+              {stats.total}
+            </p>
           </div>
+
           <div className="brand-card p-4">
-            <p className="text-xs font-semibold uppercase tracking-wider text-red-700">Categories</p>
-            <p className="mt-1 text-2xl font-black text-gray-900">{stats.categories}</p>
+            <p className="text-xs font-semibold uppercase tracking-wider text-red-700">
+              Categories
+            </p>
+            <p className="mt-1 text-2xl font-black text-gray-900">
+              {stats.categories}
+            </p>
           </div>
         </aside>
       </section>
 
       <section className="mx-auto mt-6 w-full max-w-7xl">
         <div className="mb-3 flex items-center justify-between">
-          <h3 className="text-xl font-extrabold text-gray-900 md:text-2xl">Verified Wall Posts</h3>
+          <h3 className="text-xl font-extrabold text-gray-900 md:text-2xl">
+            Verified Wall Posts
+          </h3>
+
           <Link href="/achievements" className="text-sm font-semibold text-red-700 hover:underline">
             View my submissions
           </Link>
         </div>
 
         {loading ? (
-          <div className="brand-card p-8 text-center text-gray-500">Loading verified achievements...</div>
+          <div className="brand-card p-8 text-center text-gray-500">
+            Loading verified achievements...
+          </div>
         ) : achievements.length === 0 ? (
           <div className="brand-card p-8 text-center text-gray-500">
             No verified posts yet. Once admins approve submissions, they will appear here.
@@ -143,19 +165,38 @@ export default function Home() {
             {achievements.map((item) => (
               <article key={item.id} className="brand-card p-5">
                 <div className="mb-3 flex items-start justify-between gap-3">
-                  <p className="line-clamp-2 text-lg font-bold text-gray-900">{item.title}</p>
+                  <p className="line-clamp-2 text-lg font-bold text-gray-900">
+                    {item.title}
+                  </p>
+
                   <span className={`rounded-full px-3 py-1 text-xs font-semibold ${getStatusChip(item.status)}`}>
                     {item.status}
                   </span>
                 </div>
-                <p className="text-sm font-semibold text-red-700">{item.type}</p>
-                {item.rank ? <p className="mt-1 text-sm text-gray-600">Rank/ID: {item.rank}</p> : null}
-                {item.description ? (
-                  <p className="mt-3 line-clamp-3 text-sm text-gray-600">{item.description}</p>
-                ) : null}
+
+                <p className="text-sm font-semibold text-red-700">
+                  {item.type}
+                </p>
+
+                {item.rank && (
+                  <p className="mt-1 text-sm text-gray-600">
+                    Rank/ID: {item.rank}
+                  </p>
+                )}
+
+                {item.description && (
+                  <p className="mt-3 line-clamp-3 text-sm text-gray-600">
+                    {item.description}
+                  </p>
+                )}
+
                 <div className="mt-4 flex items-center justify-between border-t border-red-50 pt-3 text-xs text-gray-500">
                   <span>{formatDate(item.created_at)}</span>
-                  <Link href={`/achievements/${item.id}`} className="font-semibold text-red-700 hover:underline">
+
+                  <Link
+                    href={`/achievements/${item.id}`}
+                    className="font-semibold text-red-700 hover:underline"
+                  >
                     View details
                   </Link>
                 </div>

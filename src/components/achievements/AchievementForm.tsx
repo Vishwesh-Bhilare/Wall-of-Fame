@@ -7,7 +7,12 @@ import Input from "../ui/Input";
 import FileUpload from "./FileUpload";
 import Card from "../ui/Card";
 
-type AchievementType = "publication" | "hackathon" | "patent" | "course" | "extracurricular";
+type AchievementType =
+  | "publication"
+  | "hackathon"
+  | "patent"
+  | "course"
+  | "extracurricular";
 
 export default function AchievementForm() {
   const [title, setTitle] = useState("");
@@ -88,8 +93,11 @@ export default function AchievementForm() {
   return (
     <Card>
       <form onSubmit={handleSubmit} className="space-y-4">
+
         <div>
-          <label className="mb-2 block text-sm font-semibold text-gray-700">Achievement Title</label>
+          <label className="mb-2 block text-sm font-semibold text-gray-700">
+            Achievement Title
+          </label>
           <Input
             placeholder="IEEE Publication on AI-driven Healthcare"
             value={title}
@@ -98,7 +106,10 @@ export default function AchievementForm() {
         </div>
 
         <div>
-          <label className="mb-2 block text-sm font-semibold text-gray-700">Achievement Type</label>
+          <label className="mb-2 block text-sm font-semibold text-gray-700">
+            Achievement Type
+          </label>
+
           <select
             className="w-full rounded-xl border border-gray-200 bg-white px-4 py-3 text-sm text-gray-900 focus:border-red-600 focus:outline-none focus:ring-2 focus:ring-red-100"
             value={type}
@@ -117,6 +128,7 @@ export default function AchievementForm() {
             <label className="mb-2 block text-sm font-semibold text-gray-700">
               {type === "hackathon" ? "Prize / Rank" : "Patent Number"}
             </label>
+
             <Input
               placeholder={type === "hackathon" ? "Top 5" : "IN-2024-XXXX"}
               value={rank}
@@ -126,7 +138,10 @@ export default function AchievementForm() {
         )}
 
         <div>
-          <label className="mb-2 block text-sm font-semibold text-gray-700">Description</label>
+          <label className="mb-2 block text-sm font-semibold text-gray-700">
+            Description
+          </label>
+
           <textarea
             placeholder="Explain what you achieved, impact, and outcome."
             className="min-h-28 w-full rounded-xl border border-gray-200 bg-white px-4 py-3 text-sm text-gray-900 focus:border-red-600 focus:outline-none focus:ring-2 focus:ring-red-100"
@@ -137,7 +152,10 @@ export default function AchievementForm() {
 
         <div className="grid gap-4 md:grid-cols-2">
           <div>
-            <label className="mb-2 block text-sm font-semibold text-gray-700">GitHub Link</label>
+            <label className="mb-2 block text-sm font-semibold text-gray-700">
+              GitHub Link
+            </label>
+
             <Input
               placeholder="https://github.com/..."
               value={github}
@@ -146,7 +164,10 @@ export default function AchievementForm() {
           </div>
 
           <div>
-            <label className="mb-2 block text-sm font-semibold text-gray-700">YouTube Demo Link</label>
+            <label className="mb-2 block text-sm font-semibold text-gray-700">
+              YouTube Demo Link
+            </label>
+
             <Input
               placeholder="https://youtube.com/..."
               value={youtube}
@@ -156,13 +177,17 @@ export default function AchievementForm() {
         </div>
 
         <div>
-          <label className="mb-2 block text-sm font-semibold text-gray-700">Certificate / Proof (optional)</label>
-          <FileUpload onFileSelect={(selectedFile: File) => setFile(selectedFile)} />
+          <label className="mb-2 block text-sm font-semibold text-gray-700">
+            Certificate / Proof (optional)
+          </label>
+
+          <FileUpload onFileSelect={(f: File) => setFile(f)} />
         </div>
 
         <Button type="submit" disabled={submitting} className="w-full">
           {submitting ? "Submitting..." : "Submit Achievement"}
         </Button>
+
       </form>
     </Card>
   );
