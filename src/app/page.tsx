@@ -146,7 +146,7 @@ export default function HomePage() {
           <h3 className="text-xl font-extrabold text-gray-900 md:text-2xl">Verified Wall Posts</h3>
 
           <Link href="/achievements" className="text-sm font-semibold text-red-700 hover:underline">
-            View my submissions
+            
           </Link>
         </div>
 
